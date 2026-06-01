@@ -44,42 +44,41 @@
     <p>BCA Program 2024</p>
   </div>
 
-  <!-- Semester navigation links -->
+  <!-- Semester navigation links — data-semester tells JS which semester to render -->
   <nav class="sidebar-nav" aria-label="Semesters">
     <ul>
-      <!-- Active semester highlighted with secondary blue bar -->
       <li>
-        <a href="#" class="nav-link active" aria-current="page">
+        <a href="#" class="nav-link active" data-semester="1" aria-current="page">
           <span class="material-symbols-outlined" aria-hidden="true">filter_1</span>
           <span>Semester 1</span>
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link">
+        <a href="#" class="nav-link" data-semester="2">
           <span class="material-symbols-outlined" aria-hidden="true">filter_2</span>
           <span>Semester 2</span>
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link">
+        <a href="#" class="nav-link" data-semester="3">
           <span class="material-symbols-outlined" aria-hidden="true">filter_3</span>
           <span>Semester 3</span>
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link">
+        <a href="#" class="nav-link" data-semester="4">
           <span class="material-symbols-outlined" aria-hidden="true">filter_4</span>
           <span>Semester 4</span>
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link">
+        <a href="#" class="nav-link" data-semester="5">
           <span class="material-symbols-outlined" aria-hidden="true">filter_5</span>
           <span>Semester 5</span>
         </a>
       </li>
       <li>
-        <a href="#" class="nav-link">
+        <a href="#" class="nav-link" data-semester="6">
           <span class="material-symbols-outlined" aria-hidden="true">filter_6</span>
           <span>Semester 6</span>
         </a>
@@ -165,18 +164,19 @@
     <!-- Page header: title + filter controls -->
     <div class="content-header">
       <div>
-        <h2 class="text-headline-lg" style="color: var(--primary);">Notes &amp; Question Papers</h2>
-        <p class="text-body-lg" style="color: var(--on-surface-variant); margin-top: 6px;">
-          Access your semester materials and preparation guides.
+        <!-- id="page-heading" and id="page-subheading" are updated by JS on semester switch -->
+        <h2 id="page-heading" class="text-headline-lg" style="color: var(--primary);">Year 1 — Semester I — Subjects</h2>
+        <p id="page-subheading" class="text-body-lg" style="color: var(--on-surface-variant); margin-top: 6px;">
+          6 subjects · click any card to access materials.
         </p>
       </div>
       <div class="content-header-actions">
-        <!-- Filter and sort buttons (surface tint style per DESIGN.md) -->
         <button class="btn-filter" aria-label="Filter resources">
           <span class="material-symbols-outlined" aria-hidden="true">filter_list</span>
           Filters
         </button>
-        <button class="btn-filter" aria-label="Sort resources">
+        <!-- id="sort-btn" is wired in JS to toggle sort order -->
+        <button class="btn-filter" id="sort-btn" aria-label="Sort resources">
           <span class="material-symbols-outlined" aria-hidden="true">sort</span>
           Latest First
         </button>
@@ -184,201 +184,11 @@
     </div>
 
     <!-- ── RESOURCE CARDS GRID ──────────────────────────────
-         3-column on desktop, 2 on tablet, 1 on mobile.
-         Each card: white bg, 8px radius, ambient shadow.
-         Hover: secondary blue border + increased shadow.
-         See CSS Section 9.
+         Cards are injected here by renderSemester() in main.js.
+         The grid ID must match what JS targets: "cards-grid".
     ─────────────────────────────────────────────────────── -->
-    <div class="cards-grid" aria-label="Study resource cards">
-
-      <!-- ── Card 1: C++ Programming Notes ─────────────────── -->
-      <article class="resource-card" aria-label="C++ Programming Notes">
-        <div class="card-thumb">
-          <!--
-            Card thumbnail image.
-            object-fit:cover ensures consistent 160px height.
-            Zoom transition on hover applied via CSS group selector.
-          -->
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD-n9z_oHv4D0OqwzxREkzDxtTB6_F-u1N4UvrkNMturrWMBMq9OmkvypRfzMK5d0lHz1XY-c4vCIaxCBqA6QjVJlgnHki43PGDlsFFtjch3a46Q_GOvAq0oL6Aidg6-04XqXtQfkcZ5bZeVczsBHSBp4duZzoyNCT5aRL4aiZv-PAT5_AlxafLSPh6wG9aMx-qIpgRXHTQWxceDNGopMW2FizGOqzLxODO3A9PbO88NXrhHYm7xt8VEVT57wLEKZC7ZfqeLEPT00"
-            alt="Laptop screen showing C++ source code with syntax highlighting"
-            loading="lazy"
-          />
-          <!-- Resource type badge: top-right of image -->
-          <span class="card-type-badge badge-notes" aria-label="Resource type: Notes">Notes</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">C++ Programming Notes</h3>
-          <!-- Subject code chip — secondary blue tint -->
-          <span class="subject-chip" aria-label="Subject code BCA-101">BCA-101</span>
-        </div>
-
-        <p class="card-description">
-          Comprehensive guide covering OOPS, Templates, and STL with examples.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Oct 12, 2023</span>
-          <!-- Download button — round, secondary blue on hover -->
-          <button class="btn-icon-round" aria-label="Download C++ Programming Notes">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-      <!-- ── Card 2: Discrete Mathematics 2023 Paper ──────── -->
-      <article class="resource-card" aria-label="Discrete Mathematics 2023 Paper">
-        <div class="card-thumb">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlel6gz8Q369d1TIh1NHLZRRO8nnPJAv4GXY0EXxipyTnHorwQOpaaxfPzFH-F6wyTi5M558wOm3WSDTrafXodlfs6KE5P0clg3-Trj-DkiNGtf0kaqZ6reJ0DdJlaSnW4pWhuR2VA95K0DgwelPZvfmdzgKQ7wsBUxyNQZxKwYT-5nBP7mjAvyHCU8zqmRPELSBUOKKQEWrYipMBmqQTIOsMbNwKoiOZAX3JTo7_BcSeHSmd2gcZHUGmq1AeCrR6vq6-FhLObkqI"
-            alt="Handwritten discrete mathematics equations on paper with a pencil"
-            loading="lazy"
-          />
-          <span class="card-type-badge badge-exam" aria-label="Resource type: Exam Paper">Exam Paper</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">Discrete Mathematics 2023 Paper</h3>
-          <span class="subject-chip" aria-label="Subject code BCA-102">BCA-102</span>
-        </div>
-
-        <p class="card-description">
-          End-term examination paper with complete solution key for reference.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Nov 05, 2023</span>
-          <button class="btn-icon-round" aria-label="Download Discrete Mathematics 2023 Paper">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-      <!-- ── Card 3: Data Structures Handouts ─────────────── -->
-      <article class="resource-card" aria-label="Data Structures Handouts">
-        <div class="card-thumb">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz920-K14PT1EcSS-jMVIUJj1rOKe6NvevaeiWhFnB7_njdsZHAeC0Q3iUeBQvoBaCyvKO1PVhN3hCeS66eSoalQzW6a9cinYzZ8yl8kP2x9s2snTEywcgW43wEtzNGbfH_YnBxyNDTcEHfHuXRCgzCpHEup8VtwreqDolKjyAoey3rEmvDT1zkFUrxqkFdcvZ9Hx5qWl19kGgsSNJxf2Pgb4T_xoAgYgp3vQKZ2pKPha-ZF-agB-NfXsXoSf74L8dKhVJ7FDL_us"
-            alt="Abstract digital network nodes representing data structures"
-            loading="lazy"
-          />
-          <span class="card-type-badge badge-notes" aria-label="Resource type: Notes">Notes</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">Data Structures Handouts</h3>
-          <span class="subject-chip" aria-label="Subject code BCA-103">BCA-103</span>
-        </div>
-
-        <p class="card-description">
-          Visual diagrams and implementations for Linked Lists, Trees, and Graphs.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Dec 20, 2023</span>
-          <button class="btn-icon-round" aria-label="Download Data Structures Handouts">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-      <!-- ── Card 4: Computer Architecture Lab ─────────────── -->
-      <article class="resource-card" aria-label="Computer Architecture Lab Manual">
-        <div class="card-thumb">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwKYCFYeM-zG5OvnIguFMy82dntNY3iw1-hAb6m1Y2wgGvFDnBRxlo0wNO0jT2b-HI-DQFO53ylKX5aP2zwugS7xvVt1lY30WX6eiQ8MP34IAUiuDKlIaxBxohkB0kbZJZTviyEUH2lLDrkbc9FVps6Fkm5qzr7HVzv7PQ2SXlDwTrrrIEPHiqlsZVlkMrzOK6Ko8j3cf583bpjpWqO3Ec1H9FWuE5awK2-OwWFpqu5pMRwKDLGbCRDsbeXf4-u19NTDCwJ7PwZ68"
-            alt="Close-up of computer motherboard gold circuits"
-            loading="lazy"
-          />
-          <span class="card-type-badge badge-lab" aria-label="Resource type: Lab Manual">Lab Manual</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">Computer Architecture Lab</h3>
-          <span class="subject-chip" aria-label="Subject code BCA-104">BCA-104</span>
-        </div>
-
-        <p class="card-description">
-          Step-by-step instructions for 8085 assembly language programming experiments.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Jan 15, 2024</span>
-          <button class="btn-icon-round" aria-label="Download Computer Architecture Lab Manual">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-      <!-- ── Card 5: Business Communication ───────────────── -->
-      <article class="resource-card" aria-label="Business Communication Notes">
-        <div class="card-thumb">
-          <img
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo2PbNyTEXTp_d34UIvPg6qjfQz8ExNy8IuSkVUea7pFFw4zT-cBj86oCfGe8P-x0EHsXk3daj_glXBMBuH21sDjzn6znDOK4EPujwkamt5y_VOQqKZ509IbX-hVka4TX1uZ2lEnqIzp5dMb-ntAbiZj8K8ZBSK9Wq6LgFPTFTv_ZZvLcblXZ0M4msSJP4gH7StybUKWfQ19fRgybXwxyO6GRpCqadP4ahwOCkTXchFCVHPj2GwwY7rYd-hUx7dJt0rjbh-o"
-            alt="Students collaborating in a modern library setting"
-            loading="lazy"
-          />
-          <span class="card-type-badge badge-notes" aria-label="Resource type: Notes">Notes</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">Business Communication</h3>
-          <span class="subject-chip" aria-label="Subject code BCA-105">BCA-105</span>
-        </div>
-
-        <p class="card-description">
-          Key concepts of professional writing, presentation skills and corporate ethics.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Feb 02, 2024</span>
-          <button class="btn-icon-round" aria-label="Download Business Communication Notes">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-      <!-- ── Card 6: Unix Fundamentals Quiz (no image — gradient placeholder) -->
-      <article class="resource-card" aria-label="Unix Fundamentals Quiz">
-        <div class="card-thumb">
-          <!--
-            Placeholder gradient when no image is available.
-            Uses primary → secondary gradient with centered icon.
-          -->
-          <div class="thumb-placeholder">
-            <span class="material-symbols-outlined" aria-hidden="true">terminal</span>
-          </div>
-          <span class="card-type-badge badge-quiz" aria-label="Resource type: Quiz">Quiz</span>
-        </div>
-
-        <div class="card-title-row">
-          <h3 class="card-title">Unix Fundamentals Quiz</h3>
-          <span class="subject-chip" aria-label="Subject code BCA-106">BCA-106</span>
-        </div>
-
-        <p class="card-description">
-          Multiple-choice questions covering shell scripting and command line utilities.
-        </p>
-
-        <div class="card-footer">
-          <span class="card-date text-label-sm">Uploaded: Feb 18, 2024</span>
-          <button class="btn-icon-round" aria-label="Download Unix Fundamentals Quiz">
-            <span class="material-symbols-outlined" aria-hidden="true">download</span>
-          </button>
-        </div>
-      </article>
-
-    </div><!-- /.cards-grid -->
-
-    <!-- ── EMPTY STATE ──────────────────────────────────────
-         Shown below existing cards as a "more coming soon" notice.
-         See CSS Section 13.
-    ─────────────────────────────────────────────────────── -->
-    <div class="empty-state" role="status" aria-live="polite">
-      <span class="material-symbols-outlined" aria-hidden="true">library_books</span>
-      <h3>More materials coming soon</h3>
-      <p>Our educators are currently uploading Semester 1 resources.</p>
+    <div class="cards-grid" id="cards-grid" aria-label="Study resource cards">
+      <!-- Cards rendered dynamically by main.js based on selected semester -->
     </div>
 
   </main><!-- /#main-content -->
