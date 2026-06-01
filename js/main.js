@@ -129,7 +129,13 @@ function buildCardHTML(subject) {
     <article class="resource-card" aria-label="${subject.title}"
              data-code="${subject.code}"
              data-title="${subject.title.toLowerCase()}"
-             data-type="${subject.type}">
+             data-type="${subject.type}"
+             style="cursor:pointer"
+             onclick="window.location.href='subject.html?code=${subject.code}'"
+             role="button"
+             tabindex="0"
+             onkeydown="if(event.key==='Enter') window.location.href='subject.html?code=${subject.code}'"
+             >
       <div class="card-thumb">
         ${thumbHTML}
         <span class="card-type-badge ${badgeClass}" aria-label="Resource type: ${subject.type}">
