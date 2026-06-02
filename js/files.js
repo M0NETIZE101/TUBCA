@@ -72,8 +72,8 @@ const FILES = {
   },
   "BCA-152": {
     notes: [
-      { title: "Unit 1 - 8085 Architecture", file: "pdfs/BCA-152/notes/Unit-1.pdf", date: "Jan 12, 2024" },
-      { title: "Unit 2 - Instruction Set",   file: "pdfs/BCA-152/notes/Unit-2.pdf", date: "Jan 20, 2024" },
+      { title: "Microprocessor and Computer Architecture(Book)", file: "pdfs/BCA-152/notes/Microprocessor and Computer Architecture.pdf", date: "June 20, 2024" },
+      { title: "Evolution of Microprocessors", file: "pdfs/BCA-152/notes/Evolution of Microprocessors.pdf", date: "June 12, 2024" },
     ],
     questionPapers: [],
     labReports: [
