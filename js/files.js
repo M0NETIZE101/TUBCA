@@ -12,9 +12,9 @@ const FILES = {
   },
   "BCA-102": {
     notes: [
-      { title: "Chapter 1 - Introduction to Functions", file: "pdfs/BCA-101/notes/Introduction-to-Functions.pdf", date: "June 02, 2026" },
-      { title: "Chapter 2 - Introduction to Array", file: "pdfs/BCA-101/notes/Introduction to Array.pdf", date: "June 02, 2026"  },
-      { title: "Chapter 6-Control-Structure",file: "pdfs/BCA-101/notes/Chapter 6-Control-Structure.pdf", date: "June 02, 2026"  },
+      { title: "Chapter 1 - Introduction to Functions", file: "pdfs/BCA-102/notes/Introduction-to-Functions.pdf", date: "June 02, 2026" },
+      { title: "Chapter 2 - Introduction to Array", file: "pdfs/BCA-102/notes/Introduction to Array.pdf", date: "June 02, 2026"  },
+      { title: "Chapter 6-Control-Structure",file: "pdfs/BCA-102/notes/Chapter 6-Control-Structure.pdf", date: "June 02, 2026"  },
     ],
     questionPapers: [
       { title: "2022 Final Exam Paper", file: "pdfs/BCA-102/question-papers/2022-Final.pdf", date: "Nov 10, 2023" },
