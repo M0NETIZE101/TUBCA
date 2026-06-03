@@ -86,17 +86,16 @@
     </ul>
   </nav>
 
-  <!-- Sidebar footer: curriculum button + utility links -->
   <div class="sidebar-footer">
-    <a href="#" class="btn-curriculum">View Curriculum</a>
+    <a href="curriculum.html" class="btn-curriculum">View Curriculum</a>
     <div class="sidebar-util-links">
       <a href="#" class="nav-link">
         <span class="material-symbols-outlined" aria-hidden="true">settings</span>
         <span>Settings</span>
       </a>
-      <a href="#" class="nav-link">
-        <span class="material-symbols-outlined" aria-hidden="true">contact_support</span>
-        <span>Support</span>
+      <a href="videos.html" class="nav-link">
+        <span class="material-symbols-outlined" aria-hidden="true">play_circle</span>
+        <span>Watch Videos</span>
       </a>
     </div>
   </div>
@@ -134,21 +133,9 @@
     </div>
 
     <div class="topbar-right">
-      <!-- Upload button — opens the upload modal -->
-      <button class="btn-upload-topbar" data-open-modal aria-haspopup="dialog" aria-controls="upload-modal">
-        <span class="material-symbols-outlined" aria-hidden="true">upload</span>
-        Upload
-      </button>
-
-      <!-- Icon buttons -->
       <button class="icon-btn" aria-label="Notifications">
         <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
       </button>
-      <button class="icon-btn" aria-label="Help and support">
-        <span class="material-symbols-outlined" aria-hidden="true">help</span>
-      </button>
-
-      <!-- User avatar -->
       <img
         class="topbar-avatar"
         src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo_7JebTD4kijCcDbePkdAtsF5AYmbgd3Ng0kUNHrNRfX9DuCei9TUlDe190zgPcKztPhGtqb20p-cAGQad7oesqzVnbCrUblckg21MLM5aqz-q3ijf6n60p1FxAB8P-at6bf667INNIb8-1p-f9N2E-SN71j2IK_RsZvX5EDJsKh8Lbe6bpgcaWu60wMVFseZ8PfYDpZHAnCx9u78sGq1vjbG_grtjG0ZfomM3R0cZA9nvvFXzIRVmdQkRfcCqnriOmoORpxC_Nk"
@@ -215,121 +202,6 @@
      Shown only on mobile (CSS display:none on desktop).
      Opens the upload modal.
 ─────────────────────────────────────────────────────────── -->
-<button class="fab" data-open-modal aria-label="Upload study resource" aria-haspopup="dialog">
-  <span class="material-symbols-outlined" aria-hidden="true">add</span>
-</button>
-
-
-<!-- ============================================================
-     UPLOAD MODAL
-     Centered dialog with blurred overlay.
-     Hidden by default — toggled via data-open-modal buttons.
-     See CSS Section 10.
-     ============================================================ -->
-<div class="modal-overlay" id="upload-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <div class="modal-card">
-
-    <!-- Modal header -->
-    <div class="modal-header">
-      <h2 id="modal-title" class="text-headline-md">Upload Study Resource</h2>
-      <button class="modal-close" id="modal-close" aria-label="Close upload dialog">
-        <span class="material-symbols-outlined" aria-hidden="true">close</span>
-      </button>
-    </div>
-
-    <!-- Modal body — scrollable -->
-    <div class="modal-body">
-
-      <!-- Drag-and-drop zone -->
-      <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Drag and drop files, or click to browse">
-        <div class="drop-zone-icon">
-          <span class="material-symbols-outlined" aria-hidden="true">cloud_upload</span>
-        </div>
-        <h3>Drag and drop files here</h3>
-        <p>PDF, DOCX, or ZIP. Max file size: 50MB.</p>
-        <button class="btn-browse" id="browse-btn" type="button">Browse Files</button>
-        <!-- Hidden real file input, triggered by Browse button -->
-        <input type="file" id="file-input" accept=".pdf,.docx,.zip" style="display:none;" aria-hidden="true" />
-      </div>
-
-      <!-- Form fields: title, subject code, semester -->
-      <div style="margin-bottom: var(--space-4);">
-        <!-- Title — full width (colspan 2) -->
-        <div class="form-group" style="margin-bottom: var(--space-2);">
-          <label class="form-label" for="resource-title">Title</label>
-          <input
-            class="form-input"
-            type="text"
-            id="resource-title"
-            value="Semester 2 - Networking Fundamentals Notes"
-            placeholder="Enter resource title"
-          />
-        </div>
-
-        <!-- Subject Code + Semester — 2-column grid -->
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label" for="subject-code">Subject Code</label>
-            <input
-              class="form-input"
-              type="text"
-              id="subject-code"
-              placeholder="e.g. BCA201"
-            />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="semester-select">Semester</label>
-            <div class="form-select-wrap">
-              <select class="form-select" id="semester-select">
-                <option value="1">Semester 1</option>
-                <option value="2" selected>Semester 2</option>
-                <option value="3">Semester 3</option>
-                <option value="4">Semester 4</option>
-                <option value="5">Semester 5</option>
-                <option value="6">Semester 6</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Upload progress card -->
-      <div class="upload-file-card">
-        <div class="upload-file-info">
-          <div class="upload-file-meta">
-            <span class="material-symbols-outlined" aria-hidden="true">description</span>
-            <div>
-              <p class="upload-file-name text-label-md" id="upload-file-name">Networking_Ch2_Summary.pdf</p>
-              <p class="upload-file-size text-label-sm" id="upload-file-size">12.4 MB • 65% completed</p>
-            </div>
-          </div>
-          <button class="btn-cancel-upload" aria-label="Cancel this upload">
-            <span class="material-symbols-outlined" aria-hidden="true">cancel</span>
-          </button>
-        </div>
-        <!-- Progress bar: track + fill -->
-        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" aria-label="Upload progress">
-          <div class="progress-fill" id="progress-bar" style="width: 65%;"></div>
-        </div>
-      </div>
-
-    </div><!-- /.modal-body -->
-
-    <!-- Modal footer: cancel + finish actions -->
-    <div class="modal-footer">
-      <button class="btn-secondary" id="modal-cancel" type="button">Cancel</button>
-      <button class="btn-primary" id="finish-upload" type="button">
-        Finish Upload
-        <span class="material-symbols-outlined" aria-hidden="true" style="font-size:18px;">check_circle</span>
-      </button>
-    </div>
-
-  </div><!-- /.modal-card -->
-</div><!-- /#upload-modal -->
-
-
-<!-- Main JavaScript — interactions, sidebar, modal, progress -->
 <script src="js/main.js"></script>
-
 </body>
 </html>
