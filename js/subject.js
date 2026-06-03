@@ -70,9 +70,10 @@ const TAB_ICONS = {
   notes:         'menu_book',
   questionPapers:'assignment',
   labReports:    'science',
+  assignments:   'edit_note',
 };
 
-const subjectFiles = (FILES && subCode && FILES[subCode]) || { notes:[], questionPapers:[], labReports:[] };
+const subjectFiles = (FILES && subCode && FILES[subCode]) || { notes:[], questionPapers:[], labReports:[], assignments:[] };
 
 function renderFileList(tabKey) {
   const files   = subjectFiles[tabKey] || [];
@@ -81,11 +82,12 @@ function renderFileList(tabKey) {
   if (countEl) countEl.textContent = files.length;
 
   if (!files.length) {
+    const labelMap = { notes:'notes', questionPapers:'question papers', labReports:'lab reports', assignments:'assignments' };
     listEl.innerHTML = `
       <div class="empty-tab">
         <span class="material-symbols-outlined">${TAB_ICONS[tabKey]}</span>
         <h3>No files yet</h3>
-        <p>No ${tabKey === 'questionPapers' ? 'question papers' : tabKey === 'labReports' ? 'lab reports' : 'notes'} uploaded for this subject yet.</p>
+        <p>No ${labelMap[tabKey]} uploaded for this subject yet.</p>
       </div>`;
     return;
   }
@@ -108,7 +110,7 @@ function renderFileList(tabKey) {
   });
 }
 
-['notes','questionPapers','labReports'].forEach(renderFileList);
+['notes','questionPapers','labReports','assignments'].forEach(renderFileList);
 
 /* ── Tab switching ── */
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -164,6 +166,8 @@ function renderPage(num) {
     page.render({ canvasContext: ctx, viewport }).promise.then(() => {
       isRendering = false;
       pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      const ji = document.getElementById('page-jump-input');
+      if (ji) { ji.value = currentPage; ji.max = totalPages; }
     });
   });
 }
@@ -191,11 +195,11 @@ function loadPDF(url) {
 
 document.getElementById('prev-page').addEventListener('click', () => {
   if (currentPage <= 1) return;
-  currentPage--; renderPage(currentPage);
+  currentPage--; renderPage(currentPage); updatePageJump();
 });
 document.getElementById('next-page').addEventListener('click', () => {
   if (currentPage >= totalPages) return;
-  currentPage++; renderPage(currentPage);
+  currentPage++; renderPage(currentPage); updatePageJump();
 });
 document.getElementById('zoom-in').addEventListener('click', () => {
   if (scale >= 3.0) return; scale += 0.2; renderPage(currentPage);
@@ -203,6 +207,31 @@ document.getElementById('zoom-in').addEventListener('click', () => {
 document.getElementById('zoom-out').addEventListener('click', () => {
   if (scale <= 0.6) return; scale -= 0.2; renderPage(currentPage);
 });
+
+const pageJumpInput = document.getElementById('page-jump-input');
+pageJumpInput.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const val = parseInt(pageJumpInput.value);
+  if (!isNaN(val) && val >= 1 && val <= totalPages) {
+    currentPage = val;
+    renderPage(currentPage);
+  } else {
+    pageJumpInput.value = currentPage;
+  }
+});
+pageJumpInput.addEventListener('blur', () => {
+  const val = parseInt(pageJumpInput.value);
+  if (!isNaN(val) && val >= 1 && val <= totalPages) {
+    currentPage = val;
+    renderPage(currentPage);
+  } else {
+    pageJumpInput.value = currentPage;
+  }
+});
+
+function updatePageJump() {
+  if (pageJumpInput) { pageJumpInput.value = currentPage; pageJumpInput.max = totalPages; }
+}
 
 /* ── Protection ── */
 document.addEventListener('contextmenu', e => e.preventDefault());

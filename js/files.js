@@ -1,18 +1,18 @@
 const FILES = {
   "BCA-101": {
     notes: [
-      { title: "Chapter 1 - Introduction to Functions",     file: "pdfs/BCA-101/notes/Introduction to Functions.pdf", date: "June 02, 2026" },
-      { title: "Chapter 2 - Introduction to Array",                file: "pdfs/BCA-101/notes/Introduction to Array.pdf", date: "June 02, 2026"  },
-      { title: "Chapter 6-Control-Structure",         file: "pdfs/BCA-101/notes/Chapter 6-Control-Structure.pdf", date: "June 02, 2026"  },
+      { title: "Chapter 1 - Introduction to Computers", file: "pdfs/BCA-101/notes/Chapter-1.pdf", date: "Oct 12, 2023" },
+      { title: "Chapter 2 - Number Systems",            file: "pdfs/BCA-101/notes/Chapter-2.pdf", date: "Oct 20, 2023" },
     ],
     questionPapers: [
       { title: "2022 Final Exam Paper", file: "pdfs/BCA-101/question-papers/2022-Final.pdf", date: "Nov 01, 2023" },
     ],
-    labReports: []
+    labReports: [],
+    assignments: []
   },
   "BCA-102": {
     notes: [
-      { title: "Chapter 1 - Introduction to Functions", file: "pdfs/BCA-102/notes/Introduction-to-Functions.pdf", date: "June 02, 2026" },
+     { title: "Chapter 1 - Introduction to Functions", file: "pdfs/BCA-102/notes/Introduction-to-Functions.pdf", date: "June 02, 2026" },
       { title: "Chapter 2 - Introduction to Array", file: "pdfs/BCA-102/notes/Introduction to Array.pdf", date: "June 02, 2026"  },
       { title: "Chapter 6-Control-Structure",file: "pdfs/BCA-102/notes/Chapter 6-Control-Structure.pdf", date: "June 02, 2026"  },
     ],
@@ -31,7 +31,8 @@ const FILES = {
       { title: "Chapter 2 - Logic Gates",     file: "pdfs/BCA-103/notes/Chapter-2.pdf", date: "Nov 08, 2023" },
     ],
     questionPapers: [],
-    labReports: []
+    labReports: [],
+    assignments: []
   },
   "BCA-104": {
     notes: [
@@ -40,7 +41,8 @@ const FILES = {
     questionPapers: [
       { title: "2023 Final Exam Paper", file: "pdfs/BCA-104/question-papers/2023-Final.pdf", date: "Nov 20, 2023" },
     ],
-    labReports: []
+    labReports: [],
+    assignments: []
   },
   "BCA-105": {
     notes: [
@@ -48,7 +50,8 @@ const FILES = {
       { title: "Unit 2 - Presentation Skills",   file: "pdfs/BCA-105/notes/Unit-2.pdf", date: "Nov 18, 2023" },
     ],
     questionPapers: [],
-    labReports: []
+    labReports: [],
+    assignments: []
   },
   "BCA-106": {
     notes: [],
@@ -68,11 +71,12 @@ const FILES = {
       { title: "2022 Final Exam Paper", file: "pdfs/BCA-151/question-papers/2022-Final.pdf", date: "Jan 25, 2024" },
       { title: "2023 Final Exam Paper", file: "pdfs/BCA-151/question-papers/2023-Final.pdf", date: "Feb 01, 2024" },
     ],
-    labReports: []
+    labReports: [],
+    assignments: []
   },
   "BCA-152": {
     notes: [
-      { title: "Microprocessor and Computer Architecture(Book)", file: "pdfs/BCA-152/notes/Microprocessor and Computer Architecture.pdf", date: "June 20, 2024" },
+   { title: "Microprocessor and Computer Architecture(Book)", file: "pdfs/BCA-152/notes/Microprocessor and Computer Architecture.pdf", date: "June 20, 2024" },
       { title: "Evolution of Microprocessors", file: "pdfs/BCA-152/notes/Evolution of Microprocessors.pdf", date: "June 12, 2024" },
     ],
     questionPapers: [],
