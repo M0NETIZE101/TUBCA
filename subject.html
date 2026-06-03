@@ -312,6 +312,11 @@
         Lab Reports
         <span class="tab-count" id="count-labReports">0</span>
       </button>
+      <button class="tab-btn" data-tab="assignments">
+        <span class="material-symbols-outlined">edit_note</span>
+        Assignments
+        <span class="tab-count" id="count-assignments">0</span>
+      </button>
     </div>
 
     <!-- Notes panel -->
@@ -327,6 +332,11 @@
     <!-- Lab Reports panel -->
     <div class="tab-panel" id="panel-labReports">
       <div class="file-list" id="list-labReports"></div>
+    </div>
+
+    <!-- Assignments panel -->
+    <div class="tab-panel" id="panel-assignments">
+      <div class="file-list" id="list-assignments"></div>
     </div>
 
     <!-- PDF Viewer — shown below file list when a file is clicked -->
@@ -348,6 +358,23 @@
           <button class="toolbar-btn" id="next-page" title="Next page">
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
+          <!-- Page jump: type a page number and press Enter to jump directly -->
+          <input
+            type="number"
+            id="page-jump-input"
+            min="1"
+            title="Go to page"
+            placeholder="Go to…"
+            style="
+              width: 80px; padding: 5px 8px;
+              border: 1px solid var(--outline-variant);
+              border-radius: var(--radius-sm);
+              font-family: inherit; font-size: 13px;
+              color: var(--on-surface);
+              background: var(--surface-container-low);
+              outline: none;
+            "
+          />
           <button class="toolbar-btn" id="zoom-out" title="Zoom out">
             <span class="material-symbols-outlined">zoom_out</span>
           </button>
