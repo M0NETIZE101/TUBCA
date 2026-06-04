@@ -147,7 +147,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let pdfDoc      = null;
 let currentPage = 1;
 let totalPages  = 1;
-let scale       = 1.4;
+let scale       = 'auto';
 let isRendering = false;
 let pendingPage = null;
 
@@ -156,6 +156,14 @@ const ctx        = canvas.getContext('2d');
 const pageInfo   = document.getElementById('page-info');
 const loadingEl  = document.getElementById('pdf-loading');
 const noPdfEl    = document.getElementById('no-pdf-state');
+
+function getScale(page) {
+  const canvasWrap = document.getElementById('canvas-wrap');
+  const padding    = window.innerWidth <= 480 ? 16 : window.innerWidth <= 768 ? 24 : 48;
+  const available  = (canvasWrap ? canvasWrap.clientWidth : window.innerWidth) - padding;
+  const viewport   = page.getViewport({ scale: 1 });
+  return Math.min(available / viewport.width, 3.0);
+}
 
 function renderPage(num) {
   if (!pdfDoc) return;
@@ -166,9 +174,10 @@ function renderPage(num) {
   isRendering = true;
   pendingPage = null;
   pdfDoc.getPage(num).then(page => {
-    const viewport = page.getViewport({ scale });
-    canvas.height  = viewport.height;
-    canvas.width   = viewport.width;
+    const autoScale = scale === 'auto' ? getScale(page) : scale;
+    const viewport  = page.getViewport({ scale: autoScale });
+    canvas.height   = viewport.height;
+    canvas.width    = viewport.width;
     page.render({ canvasContext: ctx, viewport }).promise.then(() => {
       isRendering = false;
       pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
@@ -214,10 +223,28 @@ document.getElementById('next-page').addEventListener('click', () => {
   currentPage++; renderPage(currentPage); updatePageJump();
 });
 document.getElementById('zoom-in').addEventListener('click', () => {
-  if (scale >= 3.0) return; scale += 0.2; renderPage(currentPage);
+  if (!pdfDoc) return;
+  pdfDoc.getPage(currentPage).then(page => {
+    const current = scale === 'auto' ? getScale(page) : scale;
+    scale = Math.min(current + 0.2, 3.0);
+    renderPage(currentPage);
+  });
 });
 document.getElementById('zoom-out').addEventListener('click', () => {
-  if (scale <= 0.6) return; scale -= 0.2; renderPage(currentPage);
+  if (!pdfDoc) return;
+  pdfDoc.getPage(currentPage).then(page => {
+    const current = scale === 'auto' ? getScale(page) : scale;
+    scale = Math.max(current - 0.2, 0.4);
+    renderPage(currentPage);
+  });
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (pdfDoc) { scale = 'auto'; renderPage(currentPage); }
+  }, 250);
 });
 
 const pageJumpInput = document.getElementById('page-jump-input');
