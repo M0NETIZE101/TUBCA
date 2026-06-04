@@ -87,8 +87,11 @@ const FILES = {
   },
   "BCA-154": { notes: [], questionPapers: [], labReports: [] },
   "BCA-155": { notes: [
-     { title: "Chapter 1-Introduction", file: "pdfs/BCA-153/notes/Chapter 1-Introduction.pdf", date: "June 02, 2026" },
-  ], questionPapers: [], labReports: [] },
+     { title: "Chapter 1-Introduction", file: "pdfs/BCA-155/notes/Chapter 1-Introduction.pdf", date: "June 02, 2026" },
+  ], questionPapers: [], labReports: [],
+assignments: [ { title: "Chapter 1-Assignment", file: "pdfs/BCA-155/assignments/Chapter 1-Assignment.pdf", date: "June 02, 2026" },
+
+] },
   "BCA-156": { notes: [], questionPapers: [], labReports: [] },
   "BCA-201": { notes: [], questionPapers: [], labReports: [] },
   "BCA-202": { notes: [], questionPapers: [], labReports: [] },
