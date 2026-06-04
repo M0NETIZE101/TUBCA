@@ -149,6 +149,7 @@ let currentPage = 1;
 let totalPages  = 1;
 let scale       = 1.4;
 let isRendering = false;
+let pendingPage = null;
 
 const canvas     = document.getElementById('pdf-canvas');
 const ctx        = canvas.getContext('2d');
@@ -157,8 +158,13 @@ const loadingEl  = document.getElementById('pdf-loading');
 const noPdfEl    = document.getElementById('no-pdf-state');
 
 function renderPage(num) {
-  if (isRendering || !pdfDoc) return;
+  if (!pdfDoc) return;
+  if (isRendering) {
+    pendingPage = num;
+    return;
+  }
   isRendering = true;
+  pendingPage = null;
   pdfDoc.getPage(num).then(page => {
     const viewport = page.getViewport({ scale });
     canvas.height  = viewport.height;
@@ -168,6 +174,12 @@ function renderPage(num) {
       pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
       const ji = document.getElementById('page-jump-input');
       if (ji) { ji.value = currentPage; ji.max = totalPages; }
+      if (pendingPage !== null) {
+        const next = pendingPage;
+        pendingPage = null;
+        currentPage = next;
+        renderPage(next);
+      }
     });
   });
 }
@@ -209,8 +221,8 @@ document.getElementById('zoom-out').addEventListener('click', () => {
 });
 
 const pageJumpInput = document.getElementById('page-jump-input');
-pageJumpInput.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
+
+function jumpToPage() {
   const val = parseInt(pageJumpInput.value);
   if (!isNaN(val) && val >= 1 && val <= totalPages) {
     currentPage = val;
@@ -218,16 +230,10 @@ pageJumpInput.addEventListener('keydown', e => {
   } else {
     pageJumpInput.value = currentPage;
   }
-});
-pageJumpInput.addEventListener('blur', () => {
-  const val = parseInt(pageJumpInput.value);
-  if (!isNaN(val) && val >= 1 && val <= totalPages) {
-    currentPage = val;
-    renderPage(currentPage);
-  } else {
-    pageJumpInput.value = currentPage;
-  }
-});
+}
+
+pageJumpInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); jumpToPage(); } });
+pageJumpInput.addEventListener('blur', jumpToPage);
 
 function updatePageJump() {
   if (pageJumpInput) { pageJumpInput.value = currentPage; pageJumpInput.max = totalPages; }

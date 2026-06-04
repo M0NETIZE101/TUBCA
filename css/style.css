@@ -1200,82 +1200,218 @@ ul, ol {
 
 /* ============================================================
    16. RESPONSIVE BREAKPOINTS
-   Desktop-first → adapts down to mobile.
+   Desktop → Tablet → Mobile → Small mobile
    ============================================================ */
 
-/* — Tablet: 2-column card grid — */
+/* ── Tablet landscape: 2-col card grid ── */
 @media (max-width: 1024px) {
   .cards-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* Topbar search shrinks slightly */
+  .search-wrap { max-width: 260px; }
 }
 
-/* — Tablet portrait / large mobile — */
+/* ── Tablet portrait / large mobile (≤768px) ── */
 @media (max-width: 768px) {
-  /* Sidebar becomes a drawer (slides in from left) */
+
+  /* Sidebar becomes a slide-in drawer */
   .sidebar {
     transform: translateX(-100%);
     transition: transform var(--transition-slow);
+    z-index: 200;
   }
   .sidebar.is-open {
     transform: translateX(0);
     box-shadow: var(--shadow-modal);
   }
-  .sidebar-overlay.is-open {
-    display: block;
-  }
+  .sidebar-overlay.is-open { display: block; }
 
-  /* Remove sidebar margin — full-width on mobile */
-  .main-wrapper {
-    margin-left: 0;
-  }
+  /* Full-width content — no sidebar margin */
+  .main-wrapper { margin-left: 0; }
 
-  /* Show hamburger toggle */
+  /* Show hamburger */
   .sidebar-toggle { display: flex; }
 
-  /* Show FAB */
-  .fab { display: flex; }
+  /* Hide search bar on tablet — too cramped */
+  .search-wrap { display: none; }
 
-  /* Hide upload button from topbar on very small screens */
-  .btn-upload-topbar span:first-child { display: none; } /* hide icon */
+  /* Footer stacks */
+  .site-footer { flex-direction: column; text-align: center; }
+  .footer-links { justify-content: center; }
 
-  /* Footer stacks vertically */
-  .site-footer {
-    flex-direction: column;
-    text-align: center;
-  }
-  .footer-links {
-    justify-content: center;
-  }
-}
+  /* Page content padding reduced */
+  .page-content { padding: var(--space-2); }
 
-/* — Mobile: 1-column card grid — */
-@media (max-width: 640px) {
-  .cards-grid {
-    grid-template-columns: 1fr;
-  }
-
+  /* Content header stacks */
   .content-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--space-1);
+    margin-bottom: var(--space-2);
   }
 
-  .topbar-brand { font-size: 16px; }
+  /* ── Subject page tabs: scrollable row on mobile ── */
+  .tabs-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding-bottom: 2px;
+  }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 9px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
 
-  /* Headline scale down for mobile */
-  .text-headline-lg {
-    font-size: 24px;
-    line-height: 32px;
+  /* ── PDF viewer toolbar: wrap on small screens ── */
+  .viewer-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .viewer-toolbar-left {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* ── PDF canvas: scroll horizontally instead of overflow ── */
+  .viewer-canvas-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: var(--space-2) var(--space-1);
+    min-height: 50vh;
+  }
+  #pdf-canvas {
+    max-width: none;
+    height: auto;
+  }
+
+  /* ── Videos page: single column ── */
+  .videos-body {
+    grid-template-columns: 1fr;
+    padding: var(--space-2) var(--space-2) var(--space-4);
+  }
+  .video-list-panel { position: static; }
+
+  /* ── Curriculum PDF picker: 2 cols on tablet ── */
+  .pdf-picker {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* — Small mobile — */
+/* ── Mobile (≤640px) ── */
+@media (max-width: 640px) {
+
+  /* 1-col card grid */
+  .cards-grid { grid-template-columns: 1fr; }
+
+  /* Topbar compact */
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-brand { font-size: 15px; }
+  .topbar-right { gap: 8px; }
+  .icon-btn { width: 34px; height: 34px; }
+  .topbar-avatar { width: 32px; height: 32px; }
+
+  /* Typography scale down */
+  .text-headline-lg { font-size: 22px; line-height: 30px; }
+  .text-headline-md { font-size: 20px; line-height: 28px; }
+
+  /* Page header padding */
+  .subject-header,
+  .page-header {
+    padding: 72px 16px 20px;
+  }
+  .subject-title,
+  .page-title { font-size: clamp(18px, 5vw, 28px); }
+
+  /* Subject body padding */
+  .subject-body,
+  .curriculum-body,
+  .viewer-wrap { padding-left: 12px; padding-right: 12px; }
+
+  /* Tabs font smaller */
+  .tab-btn { font-size: 12px; padding: 8px 12px; gap: 4px; }
+  .tab-btn .material-symbols-outlined { font-size: 16px; }
+
+  /* File list items compact */
+  .file-item { padding: 10px 12px; gap: 10px; }
+  .file-icon { width: 36px; height: 36px; }
+  .file-title { font-size: 13px; }
+  .file-date  { font-size: 11px; }
+
+  /* Viewer toolbar: smaller buttons */
+  .toolbar-btn { width: 30px; height: 30px; }
+  .toolbar-btn .material-symbols-outlined { font-size: 16px; }
+  .viewer-page-info { font-size: 12px; }
+
+  /* Page jump input shrinks */
+  #page-jump-input { width: 64px; font-size: 12px; padding: 4px 6px; }
+
+  /* Cards compact */
+  .card-thumb { height: 130px; }
+  .card-title { font-size: 16px; line-height: 22px; }
+
+  /* Resource card padding */
+  .resource-card { padding: 12px; }
+
+  /* Curriculum PDF picker: 1 col on mobile */
+  .pdf-picker { grid-template-columns: 1fr; }
+
+  /* Video list item thumbnails smaller */
+  .vli-thumb { width: 64px; height: 44px; }
+  .vli-title { font-size: 12px; }
+  .vli-subject { font-size: 10px; }
+
+  /* Filter tabs smaller */
+  .filter-tabs { gap: 4px; }
+  .filter-tab  { padding: 4px 10px; font-size: 11px; }
+
+  /* Footer */
+  .site-footer { padding: var(--space-2) 12px; }
+  .footer-links { gap: 12px; }
+  .footer-links a { font-size: 11px; }
+}
+
+/* ── Small mobile (≤420px) ── */
 @media (max-width: 420px) {
-  :root { --space-3: 16px; }
 
-  .topbar { padding: 0 var(--space-2); }
-  .btn-upload-topbar { padding: 8px 12px; }
+  /* Reduce global spacing unit */
+  :root { --space-3: 12px; }
 
-  /* Hide icon text in filter buttons */
-  .btn-filter span { display: none; }
+  .topbar { padding: 0 10px; }
+  .topbar-brand { font-size: 14px; }
+
+  /* Hide filter button text — icon only */
+  .btn-filter span:not(.material-symbols-outlined) { display: none; }
+
+  /* Sidebar width fits screen */
+  .sidebar { width: min(var(--sidebar-width), 85vw); }
+
+  /* PDF viewer canvas full width */
+  .viewer-canvas-wrap { padding: 8px 4px; }
+
+  /* Subject header very compact */
+  .subject-header,
+  .page-header { padding: 68px 12px 16px; }
+
+  /* Tabs: icon only on very small screens */
+  .tab-btn span:not(.material-symbols-outlined):not(.tab-count) {
+    display: none;
+  }
+  .tab-btn { padding: 8px 10px; }
+
+  /* Stack viewer toolbar vertically */
+  .viewer-toolbar-left { gap: 3px; }
+  #page-jump-input { width: 56px; }
+
+  /* Video player meta */
+  .player-title { font-size: 15px; }
+  .player-desc  { font-size: 13px; }
 }
