@@ -45,9 +45,13 @@
 
     /* ── Main content area ── */
     .subject-body {
+      /* Constrain to viewport — prevents any child from causing overflow */
       max-width: var(--container-max);
+      width: 100%;
+      box-sizing: border-box;
       margin: 0 auto;
       padding: var(--space-4) var(--space-3);
+      overflow-x: hidden;
     }
 
     /* ── Tabs ── */
@@ -132,172 +136,307 @@
     .empty-tab h3 { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
     .empty-tab p  { font-size: 14px; color: var(--on-surface-variant); }
 
-    /* ── PDF Viewer (shown below file list when a file is selected) ── */
+    /* ── PDF Viewer ── */
     .viewer-section {
-      margin-top: var(--space-4);
-      display: none;
+      margin-top: var(--space-4); display: none;
+      width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0;
     }
     .viewer-section.visible { display: block; }
 
     .viewer-header {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: var(--space-2); flex-wrap: wrap; gap: var(--space-1);
+      margin-bottom: var(--space-2); flex-wrap: wrap; gap: 8px;
     }
     .viewer-file-title {
-      font-size: 16px; font-weight: 600; color: var(--primary);
-      display: flex; align-items: center; gap: 8px;
+      font-size: 15px; font-weight: 600; color: var(--primary);
+      display: flex; align-items: center; gap: 8px; min-width: 0;
     }
-    .viewer-file-title .material-symbols-outlined { font-size: 20px; color: var(--secondary); }
+    .viewer-file-title .material-symbols-outlined { font-size: 20px; color: var(--secondary); flex-shrink: 0; }
 
+    /* Toolbar — wraps naturally on small screens */
     .viewer-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; align-items: center;
       background: var(--surface-container-lowest);
       border: 1px solid var(--outline-variant);
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-      padding: 10px var(--space-2); gap: var(--space-2); flex-wrap: wrap;
+      padding: 8px 10px; gap: 6px; flex-wrap: wrap;
+      box-sizing: border-box; width: 100%;
     }
-    .viewer-toolbar-left { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .viewer-page-info { font-size: 13px; font-weight: 500; color: var(--on-surface-variant); padding: 0 4px; }
+    .viewer-toolbar-left {
+      display: flex; align-items: center; gap: 5px;
+      flex-wrap: wrap; flex: 1; min-width: 0;
+    }
+    .viewer-page-info {
+      font-size: 12px; font-weight: 500;
+      color: var(--on-surface-variant);
+      white-space: nowrap; padding: 0 2px;
+    }
     .toolbar-btn {
       display: flex; align-items: center; justify-content: center;
-      width: 34px; height: 34px; border-radius: var(--radius);
-      border: 1px solid var(--outline-variant);
-      background: var(--surface-container-low);
-      color: var(--on-surface-variant);
-      transition: background 0.15s, color 0.15s; cursor: pointer;
-      font-family: inherit; flex-shrink: 0;
+      width: 32px; height: 32px; flex-shrink: 0;
+      border-radius: var(--radius); border: 1px solid var(--outline-variant);
+      background: var(--surface-container-low); color: var(--on-surface-variant);
+      transition: background 0.15s, color 0.15s; cursor: pointer; font-family: inherit;
     }
     .toolbar-btn:hover { background: var(--secondary); color: #fff; border-color: var(--secondary); }
-    .toolbar-btn .material-symbols-outlined { font-size: 18px; }
+    .toolbar-btn .material-symbols-outlined { font-size: 17px; }
 
-    /* KEY FIX: canvas wrap fills full width, canvas scales inside it */
+    /* ── Main scroll container ── */
     .viewer-canvas-wrap {
       position: relative;
-      background: var(--surface-container);
-      border: 1px solid var(--outline-variant); border-top: none;
-      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      min-height: 70vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: var(--space-3);
-      box-sizing: border-box;
+      /* Critical: never wider than its parent */
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      /* Clip horizontal overflow at this boundary */
+      overflow-x: clip;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      max-height: 80vh;
+      background: var(--surface-container);
+      border: 1px solid var(--outline-variant);
+      border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     }
-    /* Canvas always fills available width — PDF.js scale is set dynamically in JS */
+
+    /* Inner flex column — constrained to parent width */
+    .viewer-canvas-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch; /* stretch = fills width, not center which can overflow */
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 16px 12px;
+      gap: 16px;
+      min-width: 0; /* prevents flex children from overflowing */
+    }
+
+    /* Each page wrapper — must not exceed parent */
+    .pdf-page-wrap {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+    }
+    .pdf-page-label {
+      font-family: var(--mono, monospace);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--on-surface-variant);
+      margin-bottom: 5px;
+    }
+    /* Canvas: CSS forces fluid width, JS sets pixel size for sharpness */
+    .pdf-page-canvas {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      background: #fff;
+    }
+
+    /* Single-canvas fallback */
     #pdf-canvas {
       display: block;
-      width: 100%;
-      height: auto;
-      max-width: 100%;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
       border-radius: var(--radius);
       box-shadow: var(--shadow-card);
     }
 
-    .protection-overlay { position: absolute; inset: 0; z-index: 10; cursor: default; user-select: none; -webkit-user-select: none; }
-
+    /* Protection / watermark / blur */
+    .protection-overlay {
+      position: absolute; inset: 0; z-index: 10;
+      cursor: default; user-select: none; -webkit-user-select: none;
+      pointer-events: none;
+    }
     .watermark {
       position: absolute; inset: 0; z-index: 11;
-      pointer-events: none; display: flex;
-      align-items: center; justify-content: center; overflow: hidden;
+      pointer-events: none; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
     .watermark-text {
-      font-size: clamp(14px, 2.5vw, 24px); font-weight: 700;
-      color: rgba(0,32,69,0.06); transform: rotate(-35deg);
+      font-size: clamp(10px, 2vw, 18px); font-weight: 700;
+      color: rgba(0,32,69,0.05); transform: rotate(-35deg);
       white-space: nowrap; letter-spacing: 0.1em; text-transform: uppercase;
-      pointer-events: none; user-select: none; font-family: Inter, sans-serif;
-      line-height: 3; text-align: center; width: 200%;
+      pointer-events: none; user-select: none;
+      font-family: Inter, sans-serif; width: 200%; text-align: center; line-height: 3;
     }
-
-    .viewer-canvas-wrap.is-blurred #pdf-canvas { filter: blur(12px); }
+    .viewer-canvas-wrap.is-blurred .viewer-canvas-inner { filter: blur(12px); }
     .blur-notice {
       display: none; position: absolute; inset: 0; z-index: 20;
-      background: rgba(0,32,69,0.55); align-items: center;
-      justify-content: center; flex-direction: column; gap: var(--space-2);
-      color: #fff; text-align: center; padding: var(--space-3);
+      background: rgba(0,32,69,0.6); align-items: center;
+      justify-content: center; flex-direction: column; gap: 16px;
+      color: #fff; text-align: center; padding: 24px;
     }
     .blur-notice.visible { display: flex; }
-    .blur-notice .material-symbols-outlined { font-size: 48px; }
-    .blur-notice h3 { font-size: 20px; font-weight: 700; }
+    .blur-notice .material-symbols-outlined { font-size: 44px; }
+    .blur-notice h3 { font-size: 18px; font-weight: 700; }
 
+    /* Loading / empty states */
     .pdf-loading {
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: var(--space-2); padding: var(--space-5); width: 100%;
+      justify-content: center; gap: 16px;
+      padding: 48px 16px; width: 100%;
     }
     .spinner {
-      width: 40px; height: 40px; border: 3px solid var(--outline-variant);
-      border-top-color: var(--secondary); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 38px; height: 38px;
+      border: 3px solid var(--outline-variant);
+      border-top-color: var(--secondary);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .no-pdf-state {
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: var(--space-2);
-      padding: var(--space-5); text-align: center; width: 100%;
+      justify-content: center; gap: 12px;
+      padding: 48px 16px; text-align: center; width: 100%;
     }
-    .no-pdf-state .material-symbols-outlined { font-size: 56px; color: var(--outline); }
-    .no-pdf-state h3 { font-size: 20px; font-weight: 600; color: var(--primary); }
-    .no-pdf-state p  { font-size: 15px; color: var(--on-surface-variant); }
+    .no-pdf-state .material-symbols-outlined { font-size: 48px; color: var(--outline); }
+    .no-pdf-state h3 { font-size: 18px; font-weight: 600; color: var(--primary); }
+    .no-pdf-state p  { font-size: 14px; color: var(--on-surface-variant); }
 
+    /* Toast */
     .screenshot-toast {
-      position: fixed; bottom: 28px; left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(80px);
       background: var(--primary); color: #fff;
-      padding: 12px 24px; border-radius: var(--radius-full);
-      font-size: 14px; font-weight: 600; z-index: 9999;
-      box-shadow: var(--shadow-modal); transition: transform 0.3s ease; white-space: nowrap;
+      padding: 11px 22px; border-radius: var(--radius-full);
+      font-size: 13px; font-weight: 600; z-index: 9999;
+      box-shadow: var(--shadow-modal); transition: transform 0.3s ease;
+      white-space: nowrap; max-width: 90vw; text-align: center;
     }
     .screenshot-toast.visible { transform: translateX(-50%) translateY(0); }
 
-    /* ── Responsive ── */
+    /* ══════════════════════════════════════════════════════
+       RESPONSIVE — mobile-first, no horizontal overflow
+       ══════════════════════════════════════════════════════ */
+
+    /* ── Global overflow guard applied to every ancestor ── */
     @media (max-width: 768px) {
+      /* Make the entire main wrapper a hard overflow boundary */
+      .main-wrapper,
+      .subject-body,
+      .viewer-section,
+      .viewer-toolbar,
+      .viewer-canvas-wrap,
+      .viewer-canvas-inner,
+      .pdf-page-wrap {
+        max-width: 100vw;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
       .subject-header { padding: 72px 16px 20px; }
-      .subject-body { padding: 20px 16px; }
+      .subject-body   { padding: 20px 16px; }
+
+      /* Tabs scroll horizontally instead of wrapping */
       .tabs-wrap {
-        overflow-x: auto; -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; flex-wrap: nowrap; padding-bottom: 2px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+        max-width: 100%;
       }
       .tabs-wrap::-webkit-scrollbar { display: none; }
       .tab-btn { flex-shrink: 0; white-space: nowrap; padding: 9px 14px; }
-      .viewer-canvas-wrap { padding: 12px; min-height: 50vh; }
-      .viewer-toolbar { gap: 6px; padding: 8px 10px; }
+
+      /* Toolbar wraps tightly */
+      .viewer-toolbar { padding: 7px 10px; gap: 5px; }
+      .viewer-canvas-inner { padding: 12px 8px; gap: 12px; }
+
+      /* Viewer height */
+      .viewer-canvas-wrap { max-height: 72vh; }
     }
 
+    /* ── 480px — large phones ── */
     @media (max-width: 480px) {
       .subject-header { padding: 68px 12px 16px; }
-      .subject-title { font-size: clamp(16px, 5vw, 24px); }
-      .subject-body { padding: 14px 10px; }
-      .file-item { padding: 10px 12px; gap: 10px; }
-      .file-icon { width: 34px; height: 34px; }
+      .subject-title  { font-size: clamp(15px, 5vw, 22px); }
+      .subject-body   { padding: 14px 10px; }
+      .subject-meta   { gap: 6px; }
+      .subject-code-badge,
+      .subject-type-badge { font-size: 11px; padding: 3px 9px; }
+
+      .file-item  { padding: 10px 12px; gap: 10px; }
+      .file-icon  { width: 34px; height: 34px; }
       .file-title { font-size: 13px; }
       .file-date  { font-size: 11px; }
-      .empty-tab { padding: 28px 12px; }
-      .empty-tab .material-symbols-outlined { font-size: 36px; }
+
+      .empty-tab  { padding: 28px 12px; }
+      .empty-tab .material-symbols-outlined { font-size: 34px; }
       .empty-tab h3 { font-size: 15px; }
+
       .viewer-file-title { font-size: 13px; }
-      .viewer-toolbar { padding: 6px 8px; gap: 4px; }
-      .toolbar-btn { width: 30px; height: 30px; }
-      .toolbar-btn .material-symbols-outlined { font-size: 15px; }
-      .viewer-page-info { font-size: 11px; }
-      #page-jump-input { width: 58px !important; font-size: 12px !important; padding: 4px 5px !important; }
-      .viewer-canvas-wrap { padding: 8px; min-height: 40vh; }
-      .no-pdf-state h3 { font-size: 16px; }
+      .viewer-toolbar    { padding: 6px 8px; gap: 4px; }
+      .toolbar-btn       { width: 28px; height: 28px; }
+      .toolbar-btn .material-symbols-outlined { font-size: 14px; }
+      .viewer-page-info  { font-size: 10px; }
+      #page-jump-input   { width: 52px !important; font-size: 11px !important; padding: 3px 4px !important; }
+
+      .viewer-canvas-wrap  { max-height: 65vh; }
+      .viewer-canvas-inner { padding: 8px 6px; gap: 10px; }
+
+      .no-pdf-state h3 { font-size: 15px; }
       .no-pdf-state p  { font-size: 13px; }
-      .blur-notice h3  { font-size: 16px; }
+      .blur-notice h3  { font-size: 15px; }
       .blur-notice .material-symbols-outlined { font-size: 36px; }
-      .subject-meta { gap: 6px; }
-      .subject-code-badge, .subject-type-badge { font-size: 11px; padding: 3px 9px; }
     }
 
+    /* ── 412px — Samsung Galaxy A12 and similar ── */
+    @media (max-width: 412px) {
+      .subject-header { padding: 65px 10px 14px; }
+      .subject-body   { padding: 12px 8px; }
+      .subject-title  { font-size: clamp(14px, 4.5vw, 20px); }
+
+      /* Tabs: tighter */
+      .tab-btn { padding: 7px 10px; font-size: 12px; gap: 3px; }
+      .tab-btn .material-symbols-outlined { font-size: 15px; }
+      .tab-count { font-size: 10px; padding: 1px 5px; }
+
+      /* Toolbar: as compact as possible */
+      .viewer-toolbar  { padding: 5px 6px; gap: 3px; }
+      .toolbar-btn     { width: 26px; height: 26px; }
+      .toolbar-btn .material-symbols-outlined { font-size: 13px; }
+      #page-jump-input { width: 46px !important; font-size: 10px !important; padding: 2px 3px !important; }
+      .viewer-page-info { font-size: 10px; }
+
+      /* PDF area */
+      .viewer-canvas-wrap  { max-height: 58vh; }
+      .viewer-canvas-inner { padding: 6px 4px; gap: 8px; }
+      .pdf-page-label { font-size: 9px; }
+
+      /* File list compact */
+      .file-item  { padding: 9px 10px; gap: 8px; }
+      .file-title { font-size: 12px; }
+      .file-date  { font-size: 10px; }
+      .file-icon  { width: 30px; height: 30px; }
+      .file-icon .material-symbols-outlined { font-size: 17px; }
+    }
+
+    /* ── 360px — smallest common phones ── */
     @media (max-width: 360px) {
+      /* Hide tab text labels, keep icons + count only */
       .tab-btn span:not(.material-symbols-outlined):not(.tab-count) { display: none; }
-      .tab-btn { padding: 8px 10px; gap: 4px; }
-      .subject-header { padding: 65px 10px 12px; }
-      .subject-body { padding: 12px 8px; }
-      .viewer-canvas-wrap { padding: 6px; }
+      .tab-btn { padding: 7px 9px; gap: 2px; }
+
+      .subject-header  { padding: 64px 8px 12px; }
+      .subject-body    { padding: 10px 6px; }
+
+      .viewer-toolbar  { padding: 4px 5px; gap: 2px; }
+      .toolbar-btn     { width: 24px; height: 24px; }
+      .toolbar-btn .material-symbols-outlined { font-size: 13px; }
+      #page-jump-input { width: 40px !important; }
+
+      .viewer-canvas-wrap  { max-height: 55vh; }
+      .viewer-canvas-inner { padding: 5px 3px; gap: 6px; }
     }
   </style>
 </head>
@@ -462,15 +601,17 @@
           <h3>Content Hidden</h3>
           <p>Click anywhere to continue reading.</p>
         </div>
-        <canvas id="pdf-canvas" style="display:none"></canvas>
-        <div class="pdf-loading" id="pdf-loading" style="display:none">
-          <div class="spinner"></div>
-          <p style="color:var(--on-surface-variant);font-size:14px">Loading PDF...</p>
-        </div>
-        <div class="no-pdf-state" id="no-pdf-state" style="display:none">
-          <span class="material-symbols-outlined">picture_as_pdf</span>
-          <h3>PDF Not Available Yet</h3>
-          <p>This material hasn't been uploaded yet. Check back soon!</p>
+        <div class="viewer-canvas-inner" id="pdf-pages-container">
+          <canvas id="pdf-canvas" style="display:none"></canvas>
+          <div class="pdf-loading" id="pdf-loading" style="display:none">
+            <div class="spinner"></div>
+            <p style="color:var(--on-surface-variant);font-size:14px">Loading PDF...</p>
+          </div>
+          <div class="no-pdf-state" id="no-pdf-state" style="display:none">
+            <span class="material-symbols-outlined">picture_as_pdf</span>
+            <h3>PDF Not Available Yet</h3>
+            <p>This material hasn't been uploaded yet. Check back soon!</p>
+          </div>
         </div>
       </div>
     </div>
