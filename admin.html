@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Admin Upload — BCA Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f0f4f8;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      padding: 32px 20px;
+      color: #0a1c2f;
+    }
+
+    .upload-container {
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    /* card style */
+    .card {
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(0, 32, 69, 0.08);
+      padding: 32px 28px;
+      margin-bottom: 24px;
+      transition: all 0.2s ease;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #002045;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .subhead {
+      color: #4a5b6e;
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 28px;
+      border-left: 3px solid #0061a5;
+      padding-left: 14px;
+    }
+
+    /* form groups */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .form-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #1f3b5c;
+      margin-bottom: 8px;
+    }
+    label .material-symbols-outlined {
+      font-size: 18px;
+      color: #0061a5;
+    }
+    select, .token-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: 'Inter', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      background: #ffffff;
+      border: 1.5px solid #dce3ec;
+      border-radius: 20px;
+      transition: 0.2s;
+      color: #0a2a44;
+      cursor: pointer;
+    }
+    select:focus, .token-input:focus {
+      outline: none;
+      border-color: #0061a5;
+      box-shadow: 0 0 0 3px rgba(0, 97, 165, 0.15);
+    }
+
+    /* dropzone */
+    .dropzone {
+      border: 2px dashed #b9cadb;
+      background: #fafcff;
+      border-radius: 32px;
+      padding: 32px 20px;
+      text-align: center;
+      transition: 0.2s;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .dropzone.drag-over {
+      border-color: #0061a5;
+      background: #ecf5fe;
+    }
+    .dropzone-icon .material-symbols-outlined {
+      font-size: 52px;
+      color: #0061a5;
+      background: #e9f0fa;
+      padding: 12px;
+      border-radius: 60px;
+    }
+    .dropzone p {
+      margin-top: 12px;
+      font-weight: 500;
+      color: #2c4d73;
+    }
+    .dropzone small {
+      color: #6f8fae;
+      font-size: 12px;
+    }
+
+    /* file list */
+    .file-list {
+      margin-top: 18px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .file-chip {
+      background: #f0f4fa;
+      border-radius: 40px;
+      padding: 8px 12px 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .file-chip .file-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-all;
+    }
+    .remove-file {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #8f9eb2;
+      transition: 0.2s;
+      border-radius: 30px;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .remove-file:hover {
+      background: #e0e7f0;
+      color: #bc3f2e;
+    }
+
+    /* token & button */
+    .token-section {
+      background: #f6f9fe;
+      border-radius: 24px;
+      padding: 16px 18px;
+      margin: 24px 0 18px;
+    }
+    .token-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .token-hint {
+      font-size: 11px;
+      color: #4a6f8f;
+      margin-top: 6px;
+    }
+
+    .btn-upload {
+      width: 100%;
+      background: #0061a5;
+      border: none;
+      padding: 14px;
+      border-radius: 44px;
+      font-weight: 700;
+      font-size: 16px;
+      font-family: inherit;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 12px;
+    }
+    .btn-upload:disabled {
+      background: #bdcfe0;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-upload:hover:not(:disabled) {
+      background: #004b82;
+      transform: scale(0.98);
+    }
+
+    /* progress */
+    .progress-panel {
+      margin-top: 20px;
+      display: none;
+    }
+    .progress-track {
+      background: #e2eaf3;
+      border-radius: 40px;
+      height: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: #0061a5;
+      width: 0%;
+      height: 100%;
+      border-radius: 40px;
+      transition: width 0.2s ease;
+    }
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #1f496e;
+    }
+    .status-msg {
+      margin-top: 18px;
+      padding: 12px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+    .status-msg.success {
+      background: #e0f2e9;
+      color: #146b3a;
+      display: block;
+    }
+    .status-msg.error {
+      background: #fee9e6;
+      color: #b13e2d;
+      display: block;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #6c86a3;
+    }
+    hr {
+      margin: 12px 0;
+      border: none;
+      border-top: 1px solid #e2ecf5;
+    }
+    @media (max-width: 560px) {
+      .card { padding: 20px 16px; }
+      .form-row { flex-direction: column; gap: 12px; }
+      .dropzone { padding: 20px 12px; }
+    }
+  </style>
+</head>
+<body>
+<div class="upload-container">
+  <div class="card">
+    <h1>
+      <span class="material-symbols-outlined">cloud_upload</span>
+      Admin Upload Hub
+    </h1>
+    <div class="subhead">Upload PDFs directly to BCA portal — files appear in your repo & live site in 2 min</div>
+
+    <!-- subject + type row -->
+    <div class="form-row">
+      <div class="form-group">
+        <label><span class="material-symbols-outlined">menu_book</span>Subject</label>
+        <select id="subjectSelect">
+          <option value="">-- select subject --</option>
+          <!-- list filled by js -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label><span class="material-symbols-outlined">folder</span>File type (folder)</label>
+        <select id="typeSelect">
+          <option value="notes">📘 Notes</option>
+          <option value="question-papers">📝 Question Papers</option>
+          <option value="lab-reports">🔬 Lab Reports</option>
+          <option value="assignments">✏️ Assignments</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- DROPZONE -->
+    <label><span class="material-symbols-outlined">attach_file</span>Upload PDFs</label>
+    <div class="dropzone" id="dropzone">
+      <div class="dropzone-icon"><span class="material-symbols-outlined">cloud_upload</span></div>
+      <p>Drag & drop PDF files here</p>
+      <small>or click to browse (PDF only, max 20MB each)</small>
+    </div>
+    <input type="file" id="fileInput" multiple accept="application/pdf" style="display:none" />
+    <div id="fileListContainer" class="file-list"></div>
+
+    <!-- GitHub token (localStorage) -->
+    <div class="token-section">
+      <div class="token-label">
+        <span class="material-symbols-outlined" style="font-size:14px">key</span> GitHub personal access token
+      </div>
+      <input type="password" id="githubToken" class="token-input" placeholder="ghp_your_token_here" autocomplete="off" />
+      <div class="token-hint">🔐 Token needs <strong>repo</strong> scope. Stored only in your browser. <a href="https://github.com/settings/tokens" target="_blank" style="color:#0061a5">Create token →</a></div>
+    </div>
+
+    <button class="btn-upload" id="uploadBtn" disabled>
+      <span class="material-symbols-outlined">publish</span> Upload to GitHub
+    </button>
+
+    <!-- progress & status -->
+    <div class="progress-panel" id="progressPanel">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-stats"><span id="progressLabel">0%</span><span id="fileProgressLabel">0/0 files</span></div>
+    </div>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+  <div class="footer-note">
+    ✅ Uploaded PDFs go to: <strong>pdfs/[subject]/[type]/filename.pdf</strong><br />
+    ⚡ GitHub Pages auto-updates within 2-3 minutes.
+  </div>
+</div>
+
+<script>
+  // -------------------- CONFIG -------------------------
+  const GITHUB_USER = 'M0NETIZE101';     // ✅ replace with your GitHub username
+  const GITHUB_REPO  = 'TUBCA';          // ✅ replace with your repo name
+  const BRANCH       = 'main';
+
+  // ----------- full subject list (BCA codes) ----------
+  const SUBJECTS = [
+    "BCA-101","BCA-102","BCA-103","BCA-104","BCA-105","BCA-106",
+    "BCA-151","BCA-152","BCA-153","BCA-154","BCA-155","BCA-156",
+    "BCA-201","BCA-202","BCA-203","BCA-204","BCA-205","BCA-206",
+    "BCA-251","BCA-252","BCA-253","BCA-254","BCA-255","BCA-256",
+    "BCA-301","BCA-302","BCA-303","BCA-304","BCA-305","BCA-306"
+  ];
+
+  // Populate subject dropdown
+  const subjectSelect = document.getElementById('subjectSelect');
+  SUBJECTS.forEach(code => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = `${code}`;
+    subjectSelect.appendChild(opt);
+  });
+
+  // ------------- DOM elements --------------------------
+  const typeSelect = document.getElementById('typeSelect');
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const fileListContainer = document.getElementById('fileListContainer');
+  const tokenInput = document.getElementById('githubToken');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const progressPanel = document.getElementById('progressPanel');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const fileProgressLabel = document.getElementById('fileProgressLabel');
+  const statusMsgDiv = document.getElementById('statusMsg');
+
+  let selectedFiles = [];      // stores File objects
+
+  // ---------- load saved token from localStorage ----------
+  const savedToken = localStorage.getItem('bcagithub_token');
+  if (savedToken) tokenInput.value = savedToken;
+  tokenInput.addEventListener('input', () => {
+    if (tokenInput.value) localStorage.setItem('bcagithub_token', tokenInput.value);
+    else localStorage.removeItem('bcagithub_token');
+    checkUploadButton();
+  });
+
+  function checkUploadButton() {
+    uploadBtn.disabled = !(subjectSelect.value && selectedFiles.length > 0 && tokenInput.value.trim().length > 20);
+  }
+
+  // render file chips
+  function renderFileList() {
+    if (!selectedFiles.length) {
+      fileListContainer.innerHTML = '';
+      checkUploadButton();
+      return;
+    }
+    fileListContainer.innerHTML = selectedFiles.map((file, idx) => `
+      <div class="file-chip" data-index="${idx}">
+        <span class="file-name"><span class="material-symbols-outlined" style="font-size:18px">picture_as_pdf</span> ${escapeHtml(file.name)}</span>
+        <button class="remove-file" data-index="${idx}">✕</button>
+      </div>
+    `).join('');
+    document.querySelectorAll('.remove-file').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(btn.dataset.index);
+        selectedFiles.splice(index, 1);
+        renderFileList();
+        checkUploadButton();
+        hideStatus();
+      });
+    });
+    checkUploadButton();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // add files
+  function addFiles(files) {
+    for (let file of files) {
+      if (file.type === 'application/pdf') {
+        if (file.size <= 25 * 1024 * 1024) {
+          selectedFiles.push(file);
+        } else {
+          showStatus(`❌ ${file.name} exceeds 25MB limit`, 'error');
+        }
+      } else {
+        showStatus(`⛔ ${file.name} is not a PDF`, 'error');
+      }
+    }
+    renderFileList();
+    hideStatus();
+  }
+
+  // drop zone events
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    addFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) addFiles(e.target.files);
+    fileInput.value = '';
+  });
+
+  // UI status helpers
+  function showStatus(msg, type) {
+    statusMsgDiv.textContent = msg;
+    statusMsgDiv.className = `status-msg ${type}`;
+    setTimeout(() => {
+      if (statusMsgDiv.className.includes(type)) hideStatus();
+    }, 5000);
+  }
+  function hideStatus() { statusMsgDiv.style.display = 'none'; statusMsgDiv.className = 'status-msg'; }
+
+  // ----------- UPLOAD TO GITHUB via API ----------------
+  async function uploadToGitHub(file, subject, type, fileIndex, totalFiles) {
+    const token = tokenInput.value.trim();
+    if (!token) throw new Error('GitHub token missing');
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `pdfs/${subject}/${type}/${safeFileName}`;
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${filePath}`;
+
+    // read file as base64
+    const base64Content = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    // check if file exists (get sha)
+    let sha = null;
+    try {
+      const checkRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+      if (checkRes.ok) {
+        const data = await checkRes.json();
+        sha = data.sha;
+      }
+    } catch (e) { /* file doesn't exist, proceed */ }
+
+    const payload = {
+      message: `upload ${safeFileName} to ${subject}/${type}`,
+      content: base64Content,
+      branch: BRANCH
+    };
+    if (sha) payload.sha = sha;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.message || 'GitHub API error');
+    }
+    return { success: true, fileName: safeFileName };
+  }
+
+  // main upload handler
+  uploadBtn.addEventListener('click', async () => {
+    const subject = subjectSelect.value;
+    const fileType = typeSelect.value;
+    if (!subject) { showStatus('❌ Choose a subject', 'error'); return; }
+    if (!selectedFiles.length) { showStatus('📁 No files selected', 'error'); return; }
+    const token = tokenInput.value.trim();
+    if (!token || token.length < 20) { showStatus('🔑 Please provide a valid GitHub token (repo scope)', 'error'); return; }
+
+    uploadBtn.disabled = true;
+    progressPanel.style.display = 'block';
+    progressFill.style.width = '0%';
+    progressLabel.innerText = '0%';
+    fileProgressLabel.innerText = `0/${selectedFiles.length} files`;
+    let completed = 0;
+    let hasError = false;
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      try {
+        fileProgressLabel.innerText = `⬆️ uploading (${i+1}/${selectedFiles.length}): ${file.name}`;
+        await uploadToGitHub(file, subject, fileType, i, selectedFiles.length);
+        completed++;
+        const percent = (completed / selectedFiles.length) * 100;
+        progressFill.style.width = `${percent}%`;
+        progressLabel.innerText = `${Math.round(percent)}%`;
+        fileProgressLabel.innerText = `${completed}/${selectedFiles.length} files done`;
+      } catch (err) {
+        hasError = true;
+        showStatus(`❌ Failed: ${file.name} — ${err.message}`, 'error');
+        break;
+      }
+    }
+
+    if (!hasError && completed === selectedFiles.length) {
+      showStatus(`✅ All ${completed} PDF(s) uploaded to ${subject}/${fileType}. Site will update in 2 minutes.`, 'success');
+      selectedFiles = [];
+      renderFileList();
+      progressFill.style.width = '100%';
+      progressLabel.innerText = '100%';
+      fileProgressLabel.innerText = `🎉 Complete! ${completed} files uploaded`;
+      setTimeout(() => {
+        progressPanel.style.display = 'none';
+        progressFill.style.width = '0%';
+      }, 2500);
+    } else if (!hasError && completed < selectedFiles.length) {
+      showStatus(`⚠️ ${completed} uploaded, some were skipped due to network.`, 'error');
+    }
+    uploadBtn.disabled = false;
+    checkUploadButton();
+  });
+
+  subjectSelect.addEventListener('change', () => checkUploadButton());
+  typeSelect.addEventListener('change', () => checkUploadButton());
+  renderFileList();
+
+  // small helper to show status without hiding too fast
+  function showStatus(msg, type) {
+    statusMsgDiv.textContent = msg;
+    statusMsgDiv.className = `status-msg ${type}`;
+    setTimeout(() => {
+      if (statusMsgDiv.className.includes(type)) {
+        statusMsgDiv.style.display = 'none';
+        statusMsgDiv.className = 'status-msg';
+      }
+    }, 4800);
+    statusMsgDiv.style.display = 'block';
+  }
+</script>
+</body>
+</html>
