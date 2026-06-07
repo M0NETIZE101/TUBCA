@@ -130,6 +130,7 @@ function buildCardHTML(subject) {
              data-code="${subject.code}"
              data-title="${subject.title.toLowerCase()}"
              data-type="${subject.type}"
+             data-date="${subject.date}"
              style="cursor:pointer"
              onclick="window.location.href='subject.html?code=${subject.code}'"
              role="button"
@@ -263,38 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
 
-  /* ── 5. UPLOAD MODAL ────────────────────────────────────── */
-  const modal          = document.getElementById("upload-modal");
-  const openModalBtns  = document.querySelectorAll("[data-open-modal]");
-  const closeModalBtn  = document.getElementById("modal-close");
-  const cancelModalBtn = document.getElementById("modal-cancel");
-
-  function openModal()  {
-    modal.classList.add("is-open");
-    document.body.style.overflow = "hidden";
-    startProgressAnimation();
-  }
-  function closeModal() {
-    modal.classList.remove("is-open");
-    document.body.style.overflow = "";
-  }
-
-  openModalBtns.forEach(btn => btn.addEventListener("click", openModal));
-  if (closeModalBtn)  closeModalBtn.addEventListener("click",  closeModal);
-  if (cancelModalBtn) cancelModalBtn.addEventListener("click", closeModal);
-  if (modal) modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
-  });
-
-  const finishBtn = document.getElementById("finish-upload");
-  if (finishBtn) {
-    finishBtn.addEventListener("click", () => {
-      const bar = document.getElementById("progress-bar");
-      if (bar) bar.style.width = "100%";
-      setTimeout(closeModal, 700);
-    });
-  }
+  /* ── 5. Upload modal removed — no modal elements in index.html ── */
 
 
   /* ── 6. LIVE SEARCH ─────────────────────────────────────── */
@@ -313,7 +283,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (match) visibleCount++;
       });
 
-      /* Show inline "no results" if everything is hidden */
       let noResult = document.getElementById("search-no-result");
       if (!visibleCount && query) {
         if (!noResult) {
@@ -339,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ── 7. SORT BUTTON ─────────────────────────────────────── */
   const sortBtn = document.getElementById("sort-btn");
-  let sortAsc   = false; /* default: latest first */
+  let sortAsc   = false;
 
   if (sortBtn) {
     sortBtn.addEventListener("click", () => {
@@ -351,66 +320,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const grid  = document.getElementById("cards-grid");
       const cards = [...grid.querySelectorAll(".resource-card")];
 
+      /* Sort using data-date attribute set on each card by buildCardHTML.
+         Fallback to 0 if missing so invalid dates don't crash the sort. */
       cards.sort((a, b) => {
-        const dateA = new Date(a.querySelector(".card-date").textContent.replace("Uploaded: ", ""));
-        const dateB = new Date(b.querySelector(".card-date").textContent.replace("Uploaded: ", ""));
+        const dateA = new Date(a.dataset.date || 0);
+        const dateB = new Date(b.dataset.date || 0);
         return sortAsc ? dateA - dateB : dateB - dateA;
       });
 
-      /* Re-insert sorted cards */
       cards.forEach(c => grid.appendChild(c));
     });
   }
-
-
-  /* ── 8. DRAG-AND-DROP ZONE ──────────────────────────────── */
-  const dropZone  = document.getElementById("drop-zone");
-  const browseBtn = document.getElementById("browse-btn");
-  const fileInput = document.getElementById("file-input");
-
-  if (dropZone) {
-    dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
-    dropZone.addEventListener("dragleave", ()  => dropZone.classList.remove("drag-over"));
-    dropZone.addEventListener("drop", e => {
-      e.preventDefault();
-      dropZone.classList.remove("drag-over");
-      if (e.dataTransfer.files.length) updateFileCard(e.dataTransfer.files[0]);
-    });
-  }
-  if (browseBtn && fileInput) {
-    browseBtn.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", () => {
-      if (fileInput.files.length) updateFileCard(fileInput.files[0]);
-    });
-  }
-
-  function updateFileCard(file) {
-    const nameEl = document.getElementById("upload-file-name");
-    const sizeEl = document.getElementById("upload-file-size");
-    if (nameEl) nameEl.textContent = file.name;
-    if (sizeEl) sizeEl.textContent = formatBytes(file.size) + " • Uploading...";
-    startProgressAnimation();
-  }
-
-  function formatBytes(bytes) {
-    if (bytes < 1024)    return bytes + " B";
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / 1048576).toFixed(1) + " MB";
-  }
-
-
-  /* ── 9. PROGRESS BAR ANIMATION (mock) ──────────────────── */
-  function startProgressAnimation() {
-    const bar    = document.getElementById("progress-bar");
-    const sizeEl = document.getElementById("upload-file-size");
-    if (!bar) return;
-    bar.style.width = "65%";
-    setTimeout(() => {
-      bar.style.width = "78%";
-      if (sizeEl) sizeEl.textContent = "12.4 MB • 78% completed";
-    }, 1500);
-  }
-
-  startProgressAnimation();
 
 }); /* end DOMContentLoaded */

@@ -117,9 +117,14 @@ function openFile(tabKey,index){
   document.querySelectorAll('.file-item').forEach(i=>i.classList.remove('active-file'));
   document.querySelectorAll(`[data-tab="${tabKey}"][data-index="${index}"]`).forEach(i=>i.classList.add('active-file'));
   document.getElementById('viewer-file-title').textContent=file.title;
-  document.getElementById('viewer-section').classList.add('visible');
-  document.getElementById('viewer-section').scrollIntoView({behavior:'smooth',block:'start'});
-  loadPDF(file.file);
+
+  const viewerSection=document.getElementById('viewer-section');
+  viewerSection.classList.add('visible');
+  viewerSection.scrollIntoView({behavior:'smooth',block:'start'});
+
+  /* Small delay so the section is visible and laid out before PDF.js
+     measures the container width. Prevents blurry first render on mobile. */
+  setTimeout(()=>loadPDF(file.file), 80);
 }
 
 /* ── PDF.js continuous scroll viewer ── */
@@ -135,18 +140,25 @@ const loadingEl      = document.getElementById('pdf-loading');
 const noPdfEl        = document.getElementById('no-pdf-state');
 const singleCanvas   = document.getElementById('pdf-canvas');
 
-/* Available width — subtract padding so canvas never overflows */
+/* Available width — measured after layout settles */
 function containerWidth(){
-  if(!scrollWrap) return window.innerWidth * 0.9;
+  if(!scrollWrap) return window.innerWidth * 0.88;
   const cs  = getComputedStyle(scrollWrap);
   const pad = parseFloat(cs.paddingLeft||0) + parseFloat(cs.paddingRight||0);
-  /* clientWidth excludes scrollbar; subtract inner padding from canvas-inner */
-  return Math.max(scrollWrap.clientWidth - pad - 24, 40);
+  const w   = scrollWrap.clientWidth - pad - 24;
+  /* If clientWidth is 0 the element hasn't painted yet — fall back to window */
+  return Math.max(w > 10 ? w : window.innerWidth * 0.88, 40);
 }
 
 function calcScale(pageViewport){
   if(zoomScale!=='auto') return zoomScale;
-  return Math.min(containerWidth()/pageViewport.width, 2.5);
+  const cw  = containerWidth();
+  /* Multiply by devicePixelRatio so canvas pixels match screen pixels.
+     This makes the PDF sharp on high-DPI / retina mobile screens.
+     CSS width:100% scales it back down visually, keeping layout fluid. */
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const fit = cw / pageViewport.width;
+  return Math.min(fit * dpr, 3.0 * dpr);
 }
 
 /* Render one page into its canvas */
@@ -218,7 +230,15 @@ function loadPDF(url){
       pageInfo.textContent='Page 1 of '+totalPages;
       const ji=document.getElementById('page-jump-input');
       if(ji){ji.max=totalPages;ji.value=1;}
-      renderAllPages();
+
+      /* Wait two animation frames so the viewer section fully paints and
+         scrollWrap.clientWidth returns the real layout width before we
+         calculate scale. Without this, mobile gets width=0 → blurry PDF. */
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          renderAllPages();
+        });
+      });
     })
     .catch(()=>{
       loadingEl.style.display='none';
