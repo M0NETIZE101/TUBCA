@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Admin Upload — BCA Portal</title>
+  <title>Admin Upload — BCA Portal (Custom Titles)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
@@ -23,18 +23,16 @@
     }
 
     .upload-container {
-      max-width: 880px;
+      max-width: 1000px;
       margin: 0 auto;
     }
 
-    /* card style */
     .card {
       background: #ffffff;
       border-radius: 28px;
       box-shadow: 0 12px 30px rgba(0, 32, 69, 0.08);
       padding: 32px 28px;
       margin-bottom: 24px;
-      transition: all 0.2s ease;
     }
 
     h1 {
@@ -46,6 +44,7 @@
       align-items: center;
       gap: 10px;
       margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .subhead {
@@ -57,7 +56,18 @@
       padding-left: 14px;
     }
 
-    /* form groups */
+    .badge-auto {
+      background: #e6f4ea;
+      color: #1e7e34;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 30px;
+      display: inline-block;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
     .form-row {
       display: flex;
       flex-wrap: wrap;
@@ -102,7 +112,6 @@
       box-shadow: 0 0 0 3px rgba(0, 97, 165, 0.15);
     }
 
-    /* dropzone */
     .dropzone {
       border: 2px dashed #b9cadb;
       background: #fafcff;
@@ -134,28 +143,32 @@
       font-size: 12px;
     }
 
-    /* file list */
+    /* File list with custom title inputs */
     .file-list {
       margin-top: 18px;
-      max-height: 220px;
+      max-height: 400px;
       overflow-y: auto;
     }
-    .file-chip {
+    .file-card {
       background: #f0f4fa;
-      border-radius: 40px;
-      padding: 8px 12px 8px 16px;
+      border-radius: 20px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      border: 1px solid #e2eaf3;
+    }
+    .file-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 500;
+      margin-bottom: 10px;
     }
-    .file-chip .file-name {
+    .file-name-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      word-break: break-all;
+      font-size: 13px;
+      font-weight: 500;
+      color: #1f3b5c;
     }
     .remove-file {
       background: none;
@@ -175,8 +188,38 @@
       background: #e0e7f0;
       color: #bc3f2e;
     }
+    .title-input-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .title-input-group label {
+      font-size: 11px;
+      text-transform: none;
+      color: #0061a5;
+      margin-bottom: 0;
+    }
+    .title-input {
+      flex: 1;
+      padding: 8px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      border: 1px solid #dce3ec;
+      border-radius: 16px;
+      background: white;
+    }
+    .title-input:focus {
+      outline: none;
+      border-color: #0061a5;
+    }
+    .auto-hint {
+      font-size: 10px;
+      color: #8f9eb2;
+      cursor: pointer;
+    }
+    .auto-hint:hover { color: #0061a5; }
 
-    /* token & button */
     .token-section {
       background: #f6f9fe;
       border-radius: 24px;
@@ -224,7 +267,6 @@
       transform: scale(0.98);
     }
 
-    /* progress */
     .progress-panel {
       margin-top: 20px;
       display: none;
@@ -273,15 +315,11 @@
       font-size: 12px;
       color: #6c86a3;
     }
-    hr {
-      margin: 12px 0;
-      border: none;
-      border-top: 1px solid #e2ecf5;
-    }
     @media (max-width: 560px) {
       .card { padding: 20px 16px; }
       .form-row { flex-direction: column; gap: 12px; }
       .dropzone { padding: 20px 12px; }
+      .title-input-group { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -291,20 +329,19 @@
     <h1>
       <span class="material-symbols-outlined">cloud_upload</span>
       Admin Upload Hub
+      <span class="badge-auto">✨ Custom Titles + Auto files.js</span>
     </h1>
-    <div class="subhead">Upload PDFs directly to BCA portal — files appear in your repo & live site in 2 min</div>
+    <div class="subhead">Upload PDFs → set custom display titles → auto-updates files.js → appears on website in 2 minutes</div>
 
-    <!-- subject + type row -->
     <div class="form-row">
       <div class="form-group">
         <label><span class="material-symbols-outlined">menu_book</span>Subject</label>
         <select id="subjectSelect">
           <option value="">-- select subject --</option>
-          <!-- list filled by js -->
         </select>
       </div>
       <div class="form-group">
-        <label><span class="material-symbols-outlined">folder</span>File type (folder)</label>
+        <label><span class="material-symbols-outlined">folder</span>File type</label>
         <select id="typeSelect">
           <option value="notes">📘 Notes</option>
           <option value="question-papers">📝 Question Papers</option>
@@ -314,7 +351,6 @@
       </div>
     </div>
 
-    <!-- DROPZONE -->
     <label><span class="material-symbols-outlined">attach_file</span>Upload PDFs</label>
     <div class="dropzone" id="dropzone">
       <div class="dropzone-icon"><span class="material-symbols-outlined">cloud_upload</span></div>
@@ -324,7 +360,6 @@
     <input type="file" id="fileInput" multiple accept="application/pdf" style="display:none" />
     <div id="fileListContainer" class="file-list"></div>
 
-    <!-- GitHub token (localStorage) -->
     <div class="token-section">
       <div class="token-label">
         <span class="material-symbols-outlined" style="font-size:14px">key</span> GitHub personal access token
@@ -334,10 +369,9 @@
     </div>
 
     <button class="btn-upload" id="uploadBtn" disabled>
-      <span class="material-symbols-outlined">publish</span> Upload to GitHub
+      <span class="material-symbols-outlined">publish</span> Upload & Auto-Update files.js
     </button>
 
-    <!-- progress & status -->
     <div class="progress-panel" id="progressPanel">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       <div class="progress-stats"><span id="progressLabel">0%</span><span id="fileProgressLabel">0/0 files</span></div>
@@ -345,18 +379,20 @@
     <div class="status-msg" id="statusMsg"></div>
   </div>
   <div class="footer-note">
-    ✅ Uploaded PDFs go to: <strong>pdfs/[subject]/[type]/filename.pdf</strong><br />
-    ⚡ GitHub Pages auto-updates within 2-3 minutes.
+    ✅ For each PDF: type a custom title (what students see) → auto-added to files.js → website shows your custom title<br />
+    📁 PDF saved as original filename, but displayed with your custom title
   </div>
 </div>
 
 <script>
-  // -------------------- CONFIG -------------------------
-  const GITHUB_USER = 'M0NETIZE101';     // ✅ replace with your GitHub username
-  const GITHUB_REPO  = 'TUBCA';          // ✅ replace with your repo name
+  // ============================================================
+  // CONFIGURATION - YOUR GITHUB INFO
+  // ============================================================
+  const GITHUB_USER = 'M0NETIZE101';
+  const GITHUB_REPO  = 'TUBCA';
   const BRANCH       = 'main';
 
-  // ----------- full subject list (BCA codes) ----------
+  // Full subject list
   const SUBJECTS = [
     "BCA-101","BCA-102","BCA-103","BCA-104","BCA-105","BCA-106",
     "BCA-151","BCA-152","BCA-153","BCA-154","BCA-155","BCA-156",
@@ -374,7 +410,7 @@
     subjectSelect.appendChild(opt);
   });
 
-  // ------------- DOM elements --------------------------
+  // DOM elements
   const typeSelect = document.getElementById('typeSelect');
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('fileInput');
@@ -387,9 +423,10 @@
   const fileProgressLabel = document.getElementById('fileProgressLabel');
   const statusMsgDiv = document.getElementById('statusMsg');
 
-  let selectedFiles = [];      // stores File objects
+  // Store files with their custom titles
+  let selectedFiles = []; // each item: { file: File, customTitle: string }
 
-  // ---------- load saved token from localStorage ----------
+  // Load saved token
   const savedToken = localStorage.getItem('bcagithub_token');
   if (savedToken) tokenInput.value = savedToken;
   tokenInput.addEventListener('input', () => {
@@ -399,22 +436,63 @@
   });
 
   function checkUploadButton() {
-    uploadBtn.disabled = !(subjectSelect.value && selectedFiles.length > 0 && tokenInput.value.trim().length > 20);
+    const hasValidTitles = selectedFiles.every(item => item.customTitle && item.customTitle.trim().length > 0);
+    uploadBtn.disabled = !(subjectSelect.value && selectedFiles.length > 0 && tokenInput.value.trim().length > 20 && hasValidTitles);
   }
 
-  // render file chips
+  function generateTitleFromFilename(filename) {
+    let name = filename.replace(/\.pdf$/i, '');
+    name = name.replace(/[-_]/g, ' ');
+    name = name.replace(/\b\w/g, l => l.toUpperCase());
+    return name;
+  }
+
   function renderFileList() {
     if (!selectedFiles.length) {
       fileListContainer.innerHTML = '';
       checkUploadButton();
       return;
     }
-    fileListContainer.innerHTML = selectedFiles.map((file, idx) => `
-      <div class="file-chip" data-index="${idx}">
-        <span class="file-name"><span class="material-symbols-outlined" style="font-size:18px">picture_as_pdf</span> ${escapeHtml(file.name)}</span>
-        <button class="remove-file" data-index="${idx}">✕</button>
+
+    fileListContainer.innerHTML = selectedFiles.map((item, idx) => `
+      <div class="file-card" data-index="${idx}">
+        <div class="file-header">
+          <span class="file-name-badge">
+            <span class="material-symbols-outlined" style="font-size:18px">picture_as_pdf</span>
+            ${escapeHtml(item.file.name)}
+          </span>
+          <button class="remove-file" data-index="${idx}">✕</button>
+        </div>
+        <div class="title-input-group">
+          <label>📝 Display title (what students see):</label>
+          <input type="text" class="title-input" data-index="${idx}" value="${escapeHtml(item.customTitle || '')}" placeholder="e.g., Introduction to Functions" />
+          <span class="auto-hint" data-index="${idx}">↻ Auto-fill from filename</span>
+        </div>
       </div>
     `).join('');
+
+    // Attach event listeners for title inputs
+    document.querySelectorAll('.title-input').forEach(input => {
+      const idx = parseInt(input.dataset.index);
+      input.addEventListener('input', (e) => {
+        selectedFiles[idx].customTitle = e.target.value;
+        checkUploadButton();
+      });
+    });
+
+    // Attach auto-fill buttons
+    document.querySelectorAll('.auto-hint').forEach(btn => {
+      const idx = parseInt(btn.dataset.index);
+      btn.addEventListener('click', () => {
+        const autoTitle = generateTitleFromFilename(selectedFiles[idx].file.name);
+        selectedFiles[idx].customTitle = autoTitle;
+        const input = document.querySelector(`.title-input[data-index="${idx}"]`);
+        if (input) input.value = autoTitle;
+        checkUploadButton();
+      });
+    });
+
+    // Attach remove buttons
     document.querySelectorAll('.remove-file').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(btn.dataset.index);
@@ -428,6 +506,7 @@
   }
 
   function escapeHtml(str) {
+    if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
       if (m === '&') return '&amp;';
       if (m === '<') return '&lt;';
@@ -436,12 +515,15 @@
     });
   }
 
-  // add files
   function addFiles(files) {
     for (let file of files) {
       if (file.type === 'application/pdf') {
         if (file.size <= 25 * 1024 * 1024) {
-          selectedFiles.push(file);
+          const autoTitle = generateTitleFromFilename(file.name);
+          selectedFiles.push({
+            file: file,
+            customTitle: autoTitle
+          });
         } else {
           showStatus(`❌ ${file.name} exceeds 25MB limit`, 'error');
         }
@@ -453,7 +535,6 @@
     hideStatus();
   }
 
-  // drop zone events
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
@@ -467,25 +548,26 @@
     fileInput.value = '';
   });
 
-  // UI status helpers
   function showStatus(msg, type) {
     statusMsgDiv.textContent = msg;
     statusMsgDiv.className = `status-msg ${type}`;
     setTimeout(() => {
       if (statusMsgDiv.className.includes(type)) hideStatus();
-    }, 5000);
+    }, 6000);
+    statusMsgDiv.style.display = 'block';
   }
   function hideStatus() { statusMsgDiv.style.display = 'none'; statusMsgDiv.className = 'status-msg'; }
 
-  // ----------- UPLOAD TO GITHUB via API ----------------
-  async function uploadToGitHub(file, subject, type, fileIndex, totalFiles) {
+  // ============================================================
+  // CORE: Upload PDF + Update files.js with CUSTOM TITLE
+  // ============================================================
+  
+  async function uploadPDF(file, subject, type) {
     const token = tokenInput.value.trim();
-    if (!token) throw new Error('GitHub token missing');
     const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const filePath = `pdfs/${subject}/${type}/${safeFileName}`;
     const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${filePath}`;
 
-    // read file as base64
     const base64Content = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result.split(',')[1]);
@@ -493,7 +575,6 @@
       reader.readAsDataURL(file);
     });
 
-    // check if file exists (get sha)
     let sha = null;
     try {
       const checkRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
@@ -501,58 +582,171 @@
         const data = await checkRes.json();
         sha = data.sha;
       }
-    } catch (e) { /* file doesn't exist, proceed */ }
+    } catch (e) {}
 
+    const payload = { message: `upload ${safeFileName} to ${subject}/${type}`, content: base64Content, branch: BRANCH };
+    if (sha) payload.sha = sha;
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.message || 'PDF upload failed');
+    }
+    return { success: true, fileName: safeFileName, originalName: file.name };
+  }
+
+  async function updateFilesJS(subject, type, newFileEntry) {
+    const token = tokenInput.value.trim();
+    const filePath = 'js/files.js';
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${filePath}`;
+
+    // Get current files.js content
+    let currentContent = '';
+    let sha = null;
+    try {
+      const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+      if (getRes.ok) {
+        const data = await getRes.json();
+        sha = data.sha;
+        currentContent = atob(data.content);
+      } else {
+        throw new Error('files.js not found in repository');
+      }
+    } catch (err) {
+      throw new Error(`Cannot read files.js: ${err.message}`);
+    }
+
+    // Parse and update the FILES object
+    let updatedContent = currentContent;
+    const subjectRegex = new RegExp(`"${subject}"\\s*:\\s*\\{([^}]*)\\}`, 's');
+    const match = subjectRegex.exec(currentContent);
+    
+    if (match) {
+      const subjectBlock = match[0];
+      const typeRegex = new RegExp(`${type}\\s*:\\s*\\[([^\\]]*)\\]`, 's');
+      const typeMatch = typeRegex.exec(subjectBlock);
+      
+      if (typeMatch) {
+        const currentArrayContent = typeMatch[1];
+        let newArrayContent = currentArrayContent.trim();
+        
+        // Check if entry already exists (avoid duplicates by file path)
+        if (!currentArrayContent.includes(newFileEntry.file)) {
+          if (newArrayContent && !newArrayContent.startsWith(',')) {
+            newArrayContent = newArrayContent + ',' + newFileEntry;
+          } else if (!newArrayContent) {
+            newArrayContent = newFileEntry;
+          } else {
+            newArrayContent = newArrayContent + newFileEntry;
+          }
+          
+          const newSubjectBlock = subjectBlock.replace(
+            new RegExp(`(${type}\\s*:\\s*\\[)[^\\]]*(\\])`, 's'),
+            `$1${newArrayContent}$2`
+          );
+          updatedContent = currentContent.replace(subjectBlock, newSubjectBlock);
+        } else {
+          console.log('File entry already exists, skipping files.js update');
+          return;
+        }
+      } else {
+        // Type array doesn't exist, create it
+        const newSubjectBlock = subjectBlock.replace(
+          /\}$/,
+          `,\n    ${type}: [${newFileEntry}]\n  }`
+        );
+        updatedContent = currentContent.replace(subjectBlock, newSubjectBlock);
+      }
+    } else {
+      // Subject doesn't exist, create full entry
+      const newSubjectEntry = `
+  "${subject}": {
+    notes: [],
+    questionPapers: [],
+    labReports: [],
+    assignments: [],
+    ${type}: [${newFileEntry}]
+  },`;
+      updatedContent = currentContent.replace(/(const FILES = \{)/, `$1${newSubjectEntry}`);
+    }
+
+    // Upload updated files.js
+    const updatedBase64 = btoa(unescape(encodeURIComponent(updatedContent)));
     const payload = {
-      message: `upload ${safeFileName} to ${subject}/${type}`,
-      content: base64Content,
+      message: `Auto-update files.js: added "${newFileEntry.title}" to ${subject}/${type}`,
+      content: updatedBase64,
       branch: BRANCH
     };
     if (sha) payload.sha = sha;
 
     const response = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Authorization': `token ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-
     if (!response.ok) {
       const errData = await response.json();
-      throw new Error(errData.message || 'GitHub API error');
+      throw new Error(`files.js update failed: ${errData.message}`);
     }
-    return { success: true, fileName: safeFileName };
   }
 
-  // main upload handler
+  function formatDate() {
+    const date = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  }
+
   uploadBtn.addEventListener('click', async () => {
     const subject = subjectSelect.value;
-    const fileType = typeSelect.value;
-    if (!subject) { showStatus('❌ Choose a subject', 'error'); return; }
+    const type = typeSelect.value;
+    if (!subject) { showStatus('❌ Select a subject', 'error'); return; }
     if (!selectedFiles.length) { showStatus('📁 No files selected', 'error'); return; }
+    
+    // Check all titles are filled
+    const missingTitles = selectedFiles.filter(item => !item.customTitle || item.customTitle.trim() === '');
+    if (missingTitles.length > 0) {
+      showStatus(`⚠️ Please enter display titles for ${missingTitles.length} file(s)`, 'error');
+      return;
+    }
+    
     const token = tokenInput.value.trim();
-    if (!token || token.length < 20) { showStatus('🔑 Please provide a valid GitHub token (repo scope)', 'error'); return; }
+    if (!token || token.length < 20) { showStatus('🔑 Valid GitHub token required', 'error'); return; }
 
     uploadBtn.disabled = true;
     progressPanel.style.display = 'block';
     progressFill.style.width = '0%';
     progressLabel.innerText = '0%';
     fileProgressLabel.innerText = `0/${selectedFiles.length} files`;
+    
     let completed = 0;
     let hasError = false;
 
     for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
+      const item = selectedFiles[i];
+      const file = item.file;
+      const customTitle = item.customTitle.trim();
+      
       try {
-        fileProgressLabel.innerText = `⬆️ uploading (${i+1}/${selectedFiles.length}): ${file.name}`;
-        await uploadToGitHub(file, subject, fileType, i, selectedFiles.length);
+        fileProgressLabel.innerText = `📤 Uploading PDF ${i+1}/${selectedFiles.length}: ${file.name}`;
+        await uploadPDF(file, subject, type);
+        
+        fileProgressLabel.innerText = `📝 Updating files.js ${i+1}/${selectedFiles.length}: ${customTitle}`;
+        const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const filePath = `pdfs/${subject}/${type}/${safeFileName}`;
+        const dateStr = formatDate();
+        
+        const newEntry = `\n      { title: "${customTitle.replace(/"/g, '\\"')}", file: "${filePath}", date: "${dateStr}" }`;
+        await updateFilesJS(subject, type, newEntry);
+        
         completed++;
         const percent = (completed / selectedFiles.length) * 100;
         progressFill.style.width = `${percent}%`;
         progressLabel.innerText = `${Math.round(percent)}%`;
-        fileProgressLabel.innerText = `${completed}/${selectedFiles.length} files done`;
+        fileProgressLabel.innerText = `✅ ${completed}/${selectedFiles.length} files done`;
       } catch (err) {
         hasError = true;
         showStatus(`❌ Failed: ${file.name} — ${err.message}`, 'error');
@@ -561,18 +755,18 @@
     }
 
     if (!hasError && completed === selectedFiles.length) {
-      showStatus(`✅ All ${completed} PDF(s) uploaded to ${subject}/${fileType}. Site will update in 2 minutes.`, 'success');
+      showStatus(`🎉 SUCCESS! ${completed} PDF(s) uploaded with custom titles AND files.js updated. Site will reflect changes in 2-3 minutes.`, 'success');
       selectedFiles = [];
       renderFileList();
       progressFill.style.width = '100%';
       progressLabel.innerText = '100%';
-      fileProgressLabel.innerText = `🎉 Complete! ${completed} files uploaded`;
+      fileProgressLabel.innerText = `🎉 Complete! ${completed} files uploaded + files.js updated`;
       setTimeout(() => {
         progressPanel.style.display = 'none';
         progressFill.style.width = '0%';
-      }, 2500);
+      }, 3000);
     } else if (!hasError && completed < selectedFiles.length) {
-      showStatus(`⚠️ ${completed} uploaded, some were skipped due to network.`, 'error');
+      showStatus(`⚠️ ${completed} uploaded, some were skipped.`, 'error');
     }
     uploadBtn.disabled = false;
     checkUploadButton();
@@ -581,19 +775,6 @@
   subjectSelect.addEventListener('change', () => checkUploadButton());
   typeSelect.addEventListener('change', () => checkUploadButton());
   renderFileList();
-
-  // small helper to show status without hiding too fast
-  function showStatus(msg, type) {
-    statusMsgDiv.textContent = msg;
-    statusMsgDiv.className = `status-msg ${type}`;
-    setTimeout(() => {
-      if (statusMsgDiv.className.includes(type)) {
-        statusMsgDiv.style.display = 'none';
-        statusMsgDiv.className = 'status-msg';
-      }
-    }, 4800);
-    statusMsgDiv.style.display = 'block';
-  }
 </script>
 </body>
 </html>
