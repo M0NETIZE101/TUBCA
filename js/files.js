@@ -84,6 +84,9 @@ const FILES = {
     labReports: [
 
  ]
+  ,
+    assignments: [
+      { title: "Java ko assignments", file: "pdfs/BCA-153/assignments/20260607_211242.pdf", date: "Jun 7, 2026" }]
   },
   "BCA-154": { notes: [], questionPapers: [], labReports: [] },
   "BCA-155": { notes: [
