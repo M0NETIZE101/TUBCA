@@ -96,7 +96,10 @@ const FILES = {
     assignments: [
       { title: "Chapter 2 Assignment", file: "pdfs/BCA-155/assignments/Chapter_2_Assignment.pdf", date: "Jun 18, 2026" ,
     notes: [
-      { title: "Second Chapter", file: "pdfs/BCA-155/notes/Second_Chapter.pdf", date: "Jun 18, 2026" }]
+      { title: "Second Chapter", file: "pdfs/BCA-155/notes/Second_Chapter.pdf", date: "Jun 18, 2026" ,
+    question-papers: [
+      { title: "Unit Test Set A[Chapter 1]", file: "pdfs/BCA-155/question-papers/Unit_Test_Set_A.pdf", date: "Jun 18, 2026" }]
+  }]
   }]
   },
   ], questionPapers: [], labReports: [],
