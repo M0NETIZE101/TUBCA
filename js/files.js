@@ -56,8 +56,7 @@ const FILES = {
   },
   "BCA-151": {
     notes: [
-     
-    ],
+      { title: "UNIT-1 Fundamental Of Logic And Proof Techniques", file: "pdfs/BCA-151/notes/UNIT-1_Fundamental_of_Logic_and_Proof_Techniques.pdf", date: "Jun 18, 2026" }],
     questionPapers: [
       
     ],
