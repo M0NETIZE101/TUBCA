@@ -1,4 +1,4 @@
-/* BCA PORTAL — subject.js */
+/* BCA PORTAL — subject.js (CLEAN VERSION - No Security Features) */
 
 const SYLLABUS = {
   1:{ subjects:[
@@ -70,7 +70,13 @@ if(subject){
 
 const TAB_ICONS={notes:'menu_book',questionPapers:'assignment',labReports:'science',assignments:'edit_note'};
 const LABEL_MAP={notes:'notes',questionPapers:'question papers',labReports:'lab reports',assignments:'assignments'};
-const subjectFiles=(FILES&&subCode&&FILES[subCode])||{notes:[],questionPapers:[],labReports:[],assignments:[]};
+
+// Check if FILES exists
+if (typeof FILES === 'undefined') {
+  console.error('FILES is not defined - make sure files.js is loaded');
+  document.getElementById('subject-title').textContent = 'Error: Data not loaded';
+}
+const subjectFiles = (subCode && FILES && FILES[subCode]) || {notes:[], questionPapers:[], labReports:[], assignments:[]};
 
 function renderFileList(tabKey){
   const files=subjectFiles[tabKey]||[];
@@ -122,8 +128,12 @@ function openFile(tabKey,index){
   viewerSection.classList.add('visible');
   viewerSection.scrollIntoView({behavior:'smooth',block:'start'});
 
-  /* Small delay so the section is visible and laid out before PDF.js
-     measures the container width. Prevents blurry first render on mobile. */
+  // Set download button href
+  const downloadBtn = document.getElementById('download-btn');
+  if (downloadBtn) {
+    downloadBtn.href = file.file;
+  }
+
   setTimeout(()=>loadPDF(file.file), 80);
 }
 
@@ -134,34 +144,29 @@ pdfjsLib.GlobalWorkerOptions.workerSrc=
 let pdfDoc=null, totalPages=1, zoomScale='auto', pageCanvases=[];
 
 const pagesContainer = document.getElementById('pdf-pages-container');
-const scrollWrap     = document.getElementById('canvas-wrap');   /* scroll element */
+const scrollWrap     = document.getElementById('canvas-wrap');
 const pageInfo       = document.getElementById('page-info');
 const loadingEl      = document.getElementById('pdf-loading');
 const noPdfEl        = document.getElementById('no-pdf-state');
 const singleCanvas   = document.getElementById('pdf-canvas');
+const downloadBtn    = document.getElementById('download-btn');
 
-/* Available width — measured after layout settles */
 function containerWidth(){
   if(!scrollWrap) return window.innerWidth * 0.88;
   const cs  = getComputedStyle(scrollWrap);
   const pad = parseFloat(cs.paddingLeft||0) + parseFloat(cs.paddingRight||0);
   const w   = scrollWrap.clientWidth - pad - 24;
-  /* If clientWidth is 0 the element hasn't painted yet — fall back to window */
   return Math.max(w > 10 ? w : window.innerWidth * 0.88, 40);
 }
 
 function calcScale(pageViewport){
   if(zoomScale!=='auto') return zoomScale;
   const cw  = containerWidth();
-  /* Multiply by devicePixelRatio so canvas pixels match screen pixels.
-     This makes the PDF sharp on high-DPI / retina mobile screens.
-     CSS width:100% scales it back down visually, keeping layout fluid. */
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const fit = cw / pageViewport.width;
   return Math.min(fit * dpr, 3.0 * dpr);
 }
 
-/* Render one page into its canvas */
 function renderOnePage(pageNum){
   if(!pdfDoc) return Promise.resolve();
   return pdfDoc.getPage(pageNum).then(page=>{
@@ -172,18 +177,14 @@ function renderOnePage(pageNum){
     if(!canvas) return;
     canvas.width  = vp.width;
     canvas.height = vp.height;
-    /* CSS makes it fluid — JS only sets pixel dimensions for sharpness */
     canvas.style.width  = '100%';
     canvas.style.height = 'auto';
     return page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
   });
 }
 
-/* Build all page wrappers and render */
 function renderAllPages(){
   if(!pdfDoc) return;
-
-  /* Clear old pages but keep special state elements */
   const oldWraps = pagesContainer.querySelectorAll('.pdf-page-wrap');
   oldWraps.forEach(w=>w.remove());
   pageCanvases=[];
@@ -206,7 +207,6 @@ function renderAllPages(){
     pageCanvases.push(canvas);
   }
 
-  /* Render first 3 pages eagerly, rest lazily */
   const eager=Math.min(3,totalPages);
   const queue=[];
   for(let i=1;i<=eager;i++) queue.push(renderOnePage(i));
@@ -223,6 +223,11 @@ function loadPDF(url){
   loadingEl.style.display='flex';
   noPdfEl.style.display='none';
 
+  // Update download button
+  if (downloadBtn) {
+    downloadBtn.href = url;
+  }
+
   pdfjsLib.getDocument(url).promise
     .then(pdf=>{
       pdfDoc=pdf; totalPages=pdf.numPages; zoomScale='auto';
@@ -231,9 +236,6 @@ function loadPDF(url){
       const ji=document.getElementById('page-jump-input');
       if(ji){ji.max=totalPages;ji.value=1;}
 
-      /* Wait two animation frames so the viewer section fully paints and
-         scrollWrap.clientWidth returns the real layout width before we
-         calculate scale. Without this, mobile gets width=0 → blurry PDF. */
       requestAnimationFrame(()=>{
         requestAnimationFrame(()=>{
           renderAllPages();
@@ -246,7 +248,6 @@ function loadPDF(url){
     });
 }
 
-/* Scroll → update page indicator */
 scrollWrap && scrollWrap.addEventListener('scroll',()=>{
   if(!pdfDoc) return;
   const mid=scrollWrap.scrollTop+scrollWrap.clientHeight*0.4;
@@ -259,7 +260,6 @@ scrollWrap && scrollWrap.addEventListener('scroll',()=>{
   if(ji) ji.value=cur;
 });
 
-/* Scroll to page */
 function scrollToPage(num){
   if(!pdfDoc||num<1||num>totalPages) return;
   const wrap=pagesContainer.querySelector(`[data-page="${num}"]`);
@@ -268,7 +268,6 @@ function scrollToPage(num){
   }
 }
 
-/* Toolbar */
 document.getElementById('prev-page').addEventListener('click',()=>{
   const ji=document.getElementById('page-jump-input');
   const cur=parseInt(ji?ji.value:1)||1;
@@ -280,7 +279,6 @@ document.getElementById('next-page').addEventListener('click',()=>{
   if(cur<totalPages) scrollToPage(cur+1);
 });
 
-/* Page jump */
 const pageJumpInput=document.getElementById('page-jump-input');
 function jumpToPage(){
   const val=parseInt(pageJumpInput.value);
@@ -290,7 +288,6 @@ function jumpToPage(){
 pageJumpInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();jumpToPage();}});
 pageJumpInput.addEventListener('blur',jumpToPage);
 
-/* Zoom */
 document.getElementById('zoom-in').addEventListener('click',()=>{
   if(!pdfDoc) return;
   pdfDoc.getPage(1).then(p=>{
@@ -310,39 +307,13 @@ document.getElementById('zoom-out').addEventListener('click',()=>{
   });
 });
 
-/* Re-render on resize */
 let resizeTimer;
 window.addEventListener('resize',()=>{
   clearTimeout(resizeTimer);
   resizeTimer=setTimeout(()=>{if(pdfDoc){zoomScale='auto';renderAllPages();}},300);
 });
 
-/* Protection */
-document.addEventListener('contextmenu',e=>e.preventDefault());
-document.addEventListener('keydown',e=>{
-  const blocked=[
-    e.ctrlKey&&e.key==='s',e.ctrlKey&&e.key==='p',
-    e.ctrlKey&&e.shiftKey&&e.key==='S',
-    e.metaKey&&e.key==='s',e.metaKey&&e.key==='p',
-    e.key==='PrintScreen',
-    e.metaKey&&e.shiftKey&&(e.key==='3'||e.key==='4'),
-  ];
-  if(blocked.some(Boolean)){e.preventDefault();showToast();}
-});
-document.addEventListener('keyup',e=>{
-  if(e.key==='PrintScreen'){navigator.clipboard.writeText('').catch(()=>{});showToast();}
-});
-function showToast(){
-  const t=document.getElementById('screenshot-toast');
-  t.classList.add('visible');
-  setTimeout(()=>t.classList.remove('visible'),3000);
-}
-const canvasWrap=document.getElementById('canvas-wrap');
-const blurNotice=document.getElementById('blur-notice');
-window.addEventListener('blur', ()=>{canvasWrap?.classList.add('is-blurred');   blurNotice?.classList.add('visible');});
-window.addEventListener('focus',()=>{canvasWrap?.classList.remove('is-blurred');blurNotice?.classList.remove('visible');});
-
-/* Sidebar */
+/* ── Sidebar ── */
 const sidebar=document.getElementById('sidebar');
 const sidebarOverlay=document.getElementById('sidebar-overlay');
 const sidebarToggle=document.getElementById('sidebar-toggle');

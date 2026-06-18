@@ -45,7 +45,6 @@
 
     /* ── Main content area ── */
     .subject-body {
-      /* Constrain to viewport — prevents any child from causing overflow */
       max-width: var(--container-max);
       width: 100%;
       box-sizing: border-box;
@@ -60,7 +59,11 @@
       gap: 4px;
       border-bottom: 2px solid var(--outline-variant);
       margin-bottom: var(--space-4);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    .tabs-wrap::-webkit-scrollbar { display: none; }
     .tab-btn {
       display: flex; align-items: center; gap: 8px;
       padding: 10px 20px;
@@ -71,6 +74,7 @@
       margin-bottom: -2px;
       transition: color 0.2s, border-color 0.2s;
       border-radius: var(--radius) var(--radius) 0 0;
+      white-space: nowrap;
     }
     .tab-btn:hover { color: var(--secondary); background: var(--surface-container-low); }
     .tab-btn.active { color: var(--secondary); border-bottom-color: var(--secondary); }
@@ -138,8 +142,12 @@
 
     /* ── PDF Viewer ── */
     .viewer-section {
-      margin-top: var(--space-4); display: none;
-      width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0;
+      margin-top: var(--space-4);
+      display: none;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
     }
     .viewer-section.visible { display: block; }
 
@@ -149,13 +157,14 @@
     }
     .viewer-file-title {
       font-size: 15px; font-weight: 600; color: var(--primary);
-      display: flex; align-items: center; gap: 8px; min-width: 0;
+      display: flex; align-items: center; gap: 8px;
+      min-width: 0;
     }
     .viewer-file-title .material-symbols-outlined { font-size: 20px; color: var(--secondary); flex-shrink: 0; }
 
-    /* Toolbar — wraps naturally on small screens */
     .viewer-toolbar {
       display: flex; align-items: center;
+      justify-content: space-between;
       background: var(--surface-container-lowest);
       border: 1px solid var(--outline-variant);
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
@@ -165,6 +174,9 @@
     .viewer-toolbar-left {
       display: flex; align-items: center; gap: 5px;
       flex-wrap: wrap; flex: 1; min-width: 0;
+    }
+    .viewer-toolbar-right {
+      display: flex; align-items: center; gap: 6px;
     }
     .viewer-page-info {
       font-size: 12px; font-weight: 500;
@@ -177,18 +189,16 @@
       border-radius: var(--radius); border: 1px solid var(--outline-variant);
       background: var(--surface-container-low); color: var(--on-surface-variant);
       transition: background 0.15s, color 0.15s; cursor: pointer; font-family: inherit;
+      text-decoration: none;
     }
     .toolbar-btn:hover { background: var(--secondary); color: #fff; border-color: var(--secondary); }
     .toolbar-btn .material-symbols-outlined { font-size: 17px; }
 
-    /* ── Main scroll container ── */
     .viewer-canvas-wrap {
       position: relative;
-      /* Critical: never wider than its parent */
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
-      /* Clip horizontal overflow at this boundary */
       overflow-x: clip;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -199,20 +209,18 @@
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     }
 
-    /* Inner flex column — constrained to parent width */
     .viewer-canvas-inner {
       display: flex;
       flex-direction: column;
-      align-items: stretch; /* stretch = fills width, not center which can overflow */
+      align-items: stretch;
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
       padding: 16px 12px;
       gap: 16px;
-      min-width: 0; /* prevents flex children from overflowing */
+      min-width: 0;
     }
 
-    /* Each page wrapper — must not exceed parent */
     .pdf-page-wrap {
       width: 100%;
       max-width: 100%;
@@ -223,12 +231,13 @@
       min-width: 0;
     }
     .pdf-page-label {
-      font-family: var(--mono, monospace);
-      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--on-surface-variant);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
       margin-bottom: 5px;
     }
-    /* Canvas: CSS forces fluid width, JS sets pixel size for sharpness */
     .pdf-page-canvas {
       display: block;
       width: 100% !important;
@@ -240,7 +249,6 @@
       background: #fff;
     }
 
-    /* Single-canvas fallback */
     #pdf-canvas {
       display: block;
       width: 100% !important;
@@ -251,36 +259,6 @@
       box-shadow: var(--shadow-card);
     }
 
-    /* Protection / watermark / blur */
-    .protection-overlay {
-      position: absolute; inset: 0; z-index: 10;
-      cursor: default; user-select: none; -webkit-user-select: none;
-      pointer-events: none;
-    }
-    .watermark {
-      position: absolute; inset: 0; z-index: 11;
-      pointer-events: none; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .watermark-text {
-      font-size: clamp(10px, 2vw, 18px); font-weight: 700;
-      color: rgba(0,32,69,0.05); transform: rotate(-35deg);
-      white-space: nowrap; letter-spacing: 0.1em; text-transform: uppercase;
-      pointer-events: none; user-select: none;
-      font-family: Inter, sans-serif; width: 200%; text-align: center; line-height: 3;
-    }
-    .viewer-canvas-wrap.is-blurred .viewer-canvas-inner { filter: blur(12px); }
-    .blur-notice {
-      display: none; position: absolute; inset: 0; z-index: 20;
-      background: rgba(0,32,69,0.6); align-items: center;
-      justify-content: center; flex-direction: column; gap: 16px;
-      color: #fff; text-align: center; padding: 24px;
-    }
-    .blur-notice.visible { display: flex; }
-    .blur-notice .material-symbols-outlined { font-size: 44px; }
-    .blur-notice h3 { font-size: 18px; font-weight: 700; }
-
-    /* Loading / empty states */
     .pdf-loading {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 16px;
@@ -293,6 +271,7 @@
       border-radius: 50%; animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
     .no-pdf-state {
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 12px;
@@ -302,25 +281,8 @@
     .no-pdf-state h3 { font-size: 18px; font-weight: 600; color: var(--primary); }
     .no-pdf-state p  { font-size: 14px; color: var(--on-surface-variant); }
 
-    /* Toast */
-    .screenshot-toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--primary); color: #fff;
-      padding: 11px 22px; border-radius: var(--radius-full);
-      font-size: 13px; font-weight: 600; z-index: 9999;
-      box-shadow: var(--shadow-modal); transition: transform 0.3s ease;
-      white-space: nowrap; max-width: 90vw; text-align: center;
-    }
-    .screenshot-toast.visible { transform: translateX(-50%) translateY(0); }
-
-    /* ══════════════════════════════════════════════════════
-       RESPONSIVE — mobile-first, no horizontal overflow
-       ══════════════════════════════════════════════════════ */
-
-    /* ── Global overflow guard applied to every ancestor ── */
+    /* Responsive */
     @media (max-width: 768px) {
-      /* Make the entire main wrapper a hard overflow boundary */
       .main-wrapper,
       .subject-body,
       .viewer-section,
@@ -332,11 +294,8 @@
         box-sizing: border-box;
         min-width: 0;
       }
-
       .subject-header { padding: 72px 16px 20px; }
       .subject-body   { padding: 20px 16px; }
-
-      /* Tabs scroll horizontally instead of wrapping */
       .tabs-wrap {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
@@ -347,16 +306,11 @@
       }
       .tabs-wrap::-webkit-scrollbar { display: none; }
       .tab-btn { flex-shrink: 0; white-space: nowrap; padding: 9px 14px; }
-
-      /* Toolbar wraps tightly */
       .viewer-toolbar { padding: 7px 10px; gap: 5px; }
       .viewer-canvas-inner { padding: 12px 8px; gap: 12px; }
-
-      /* Viewer height */
       .viewer-canvas-wrap { max-height: 72vh; }
     }
 
-    /* ── 480px — large phones ── */
     @media (max-width: 480px) {
       .subject-header { padding: 68px 12px 16px; }
       .subject-title  { font-size: clamp(15px, 5vw, 22px); }
@@ -364,79 +318,23 @@
       .subject-meta   { gap: 6px; }
       .subject-code-badge,
       .subject-type-badge { font-size: 11px; padding: 3px 9px; }
-
       .file-item  { padding: 10px 12px; gap: 10px; }
       .file-icon  { width: 34px; height: 34px; }
       .file-title { font-size: 13px; }
       .file-date  { font-size: 11px; }
-
       .empty-tab  { padding: 28px 12px; }
       .empty-tab .material-symbols-outlined { font-size: 34px; }
       .empty-tab h3 { font-size: 15px; }
-
       .viewer-file-title { font-size: 13px; }
       .viewer-toolbar    { padding: 6px 8px; gap: 4px; }
       .toolbar-btn       { width: 28px; height: 28px; }
       .toolbar-btn .material-symbols-outlined { font-size: 14px; }
       .viewer-page-info  { font-size: 10px; }
       #page-jump-input   { width: 52px !important; font-size: 11px !important; padding: 3px 4px !important; }
-
       .viewer-canvas-wrap  { max-height: 65vh; }
       .viewer-canvas-inner { padding: 8px 6px; gap: 10px; }
-
       .no-pdf-state h3 { font-size: 15px; }
       .no-pdf-state p  { font-size: 13px; }
-      .blur-notice h3  { font-size: 15px; }
-      .blur-notice .material-symbols-outlined { font-size: 36px; }
-    }
-
-    /* ── 412px — Samsung Galaxy A12 and similar ── */
-    @media (max-width: 412px) {
-      .subject-header { padding: 65px 10px 14px; }
-      .subject-body   { padding: 12px 8px; }
-      .subject-title  { font-size: clamp(14px, 4.5vw, 20px); }
-
-      /* Tabs: tighter */
-      .tab-btn { padding: 7px 10px; font-size: 12px; gap: 3px; }
-      .tab-btn .material-symbols-outlined { font-size: 15px; }
-      .tab-count { font-size: 10px; padding: 1px 5px; }
-
-      /* Toolbar: as compact as possible */
-      .viewer-toolbar  { padding: 5px 6px; gap: 3px; }
-      .toolbar-btn     { width: 26px; height: 26px; }
-      .toolbar-btn .material-symbols-outlined { font-size: 13px; }
-      #page-jump-input { width: 46px !important; font-size: 10px !important; padding: 2px 3px !important; }
-      .viewer-page-info { font-size: 10px; }
-
-      /* PDF area */
-      .viewer-canvas-wrap  { max-height: 58vh; }
-      .viewer-canvas-inner { padding: 6px 4px; gap: 8px; }
-      .pdf-page-label { font-size: 9px; }
-
-      /* File list compact */
-      .file-item  { padding: 9px 10px; gap: 8px; }
-      .file-title { font-size: 12px; }
-      .file-date  { font-size: 10px; }
-      .file-icon  { width: 30px; height: 30px; }
-      .file-icon .material-symbols-outlined { font-size: 17px; }
-    }
-
-    /* ── 360px — smallest common phones ── */
-    @media (max-width: 360px) {
-      /* Hide tab text labels, keep icons + count only */
-      .tab-btn span:not(.material-symbols-outlined):not(.tab-count) { display: none; }
-      .tab-btn { padding: 7px 9px; gap: 2px; }
-
-      .subject-header  { padding: 64px 8px 12px; }
-      .subject-body    { padding: 10px 6px; }
-
-      .viewer-toolbar  { padding: 4px 5px; gap: 2px; }
-      .toolbar-btn     { width: 24px; height: 24px; }
-      .toolbar-btn .material-symbols-outlined { font-size: 13px; }
-      #page-jump-input { width: 40px !important; }
-
-      .viewer-canvas-wrap  { max-height: 55vh; }
-      .viewer-canvas-inner { padding: 5px 3px; gap: 6px; }
     }
   </style>
 </head>
@@ -477,7 +375,7 @@
     <div class="topbar-right">
       <button class="icon-btn"><span class="material-symbols-outlined">notifications</span></button>
       <button class="icon-btn"><span class="material-symbols-outlined">help</span></button>
-      <img class="topbar-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo_7JebTD4kijCcDbePkdAtsF5AYmbgd3Ng0kUNHrNRfX9DuCei9TUlDe190zgPcKztPhGtqb20p-cAGQad7oesqzVnbCrUblckg21MLM5aqz-q3ijf6n60p1FxAB8P-at6bf667INNIb8-1p-f9N2E-SN71j2IK_RsZvX5EDJsKh8Lbe6bpgcaWu60wMVFseZ8PfYDpZHAnCx9u78sGq1vjbG_grtjG0ZfomM3R0cZA9nvvFXzIRVmdQkRfcCqnriOmoORpxC_Nk" alt="Profile" />
+      <img class="topbar-avatar" src="images/Logo.png" alt="Profile" />
     </div>
   </header>
 
@@ -561,7 +459,6 @@
           <button class="toolbar-btn" id="next-page" title="Next page">
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
-          <!-- Page jump: type a page number and press Enter to jump directly -->
           <input
             type="number"
             id="page-jump-input"
@@ -585,22 +482,14 @@
             <span class="material-symbols-outlined">zoom_in</span>
           </button>
         </div>
+        <div class="viewer-toolbar-right">
+          <a id="download-btn" class="toolbar-btn" title="Download PDF" download>
+            <span class="material-symbols-outlined">download</span>
+          </a>
+        </div>
       </div>
 
       <div class="viewer-canvas-wrap" id="canvas-wrap">
-        <div class="protection-overlay" id="protection-overlay"></div>
-        <div class="watermark" aria-hidden="true">
-          <div class="watermark-text">
-            BCA Academic Portal &nbsp;&nbsp; Unauthorized Copying Prohibited &nbsp;&nbsp;
-            BCA Academic Portal &nbsp;&nbsp; Unauthorized Copying Prohibited &nbsp;&nbsp;
-            BCA Academic Portal &nbsp;&nbsp; Unauthorized Copying Prohibited
-          </div>
-        </div>
-        <div class="blur-notice" id="blur-notice">
-          <span class="material-symbols-outlined">visibility_off</span>
-          <h3>Content Hidden</h3>
-          <p>Click anywhere to continue reading.</p>
-        </div>
         <div class="viewer-canvas-inner" id="pdf-pages-container">
           <canvas id="pdf-canvas" style="display:none"></canvas>
           <div class="pdf-loading" id="pdf-loading" style="display:none">
@@ -630,10 +519,6 @@
       <a href="#">Privacy Policy</a>
     </nav>
   </footer>
-</div>
-
-<div class="screenshot-toast" id="screenshot-toast">
-  ⚠️ Screenshots are not permitted on this portal.
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
