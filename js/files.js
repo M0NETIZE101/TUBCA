@@ -65,7 +65,10 @@ const FILES = {
   },
   "BCA-152": {
     notes: [
-   { title: "Microprocessor and Computer Architecture(Book)", file: "pdfs/BCA-152/notes/Microprocessor and Computer Architecture.pdf", date: "June 20, 2024" },
+   { title: "Microprocessor and Computer Architecture(Book)", file: "pdfs/BCA-152/notes/Microprocessor and Computer Architecture.pdf", date: "June 20, 2024" ,
+    assignments: [
+      { title: "Assignment 1 And 2[Chapter 1]", file: "pdfs/BCA-152/assignments/Assignment_1_and_2.pdf", date: "Jun 18, 2026" }]
+  },
       { title: "Evolution of Microprocessors", file: "pdfs/BCA-152/notes/Evolution of Microprocessors.pdf", date: "June 12, 2024" },
     ],
     questionPapers: [],
