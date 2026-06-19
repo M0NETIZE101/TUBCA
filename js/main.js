@@ -110,20 +110,48 @@ const TYPE_ICON = {
  * @param {Object} subject — one entry from SYLLABUS[n].subjects
  * @returns {string} HTML string
  */
+/**
+ * buildCardHTML — Returns the HTML string for one resource card.
+ * Now supports custom subject images from your GitHub images folder.
+ * @param {Object} subject — one entry from SYLLABUS[n].subjects
+ * @returns {string} HTML string
+ */
 function buildCardHTML(subject) {
   const badgeClass = TYPE_BADGE_CLASS[subject.type] || "badge-default";
   const icon       = TYPE_ICON[subject.type] || TYPE_ICON["default"];
 
-  /* Thumbnail: real image if available, gradient placeholder otherwise */
-  const thumbHTML = subject.thumb
-    ? `<img
-         src="${subject.thumb}"
-         alt="Cover image for ${subject.title}"
-         loading="lazy"
-       />`
-    : `<div class="thumb-placeholder">
-         <span class="material-symbols-outlined" aria-hidden="true">${icon}</span>
-       </div>`;
+  /* ── IMAGE LOGIC ──
+     1. Check if custom image exists for this subject code
+     2. If yes, use it
+     3. If no, use fallback image
+  */
+  const subjectCode = subject.code;
+  const customImagePath = `images/subjects/${subjectCode}-cover.jpg`;
+  const fallbackImagePath = `images/subjects/default-cover.jpg`;
+  
+  // You can also set specific fallbacks per subject type
+  const typeFallbacks = {
+    "Notes": "images/subjects/default-notes.jpg",
+    "Exam Paper": "images/subjects/default-exam.jpg",
+    "Lab Manual": "images/subjects/default-lab.jpg",
+  };
+
+  // Determine which image to use
+  // We'll try custom image first, then type-specific fallback, then general fallback
+  const imagePath = customImagePath; // We'll handle 404 in the img onerror
+
+  /* Thumbnail: custom image if available, fallback otherwise */
+  const thumbHTML = `
+    <img
+      src="${customImagePath}"
+      alt="Cover image for ${subject.title}"
+      loading="lazy"
+      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+    />
+    <div class="thumb-placeholder" style="display:none;">
+      <span class="material-symbols-outlined" aria-hidden="true">${icon}</span>
+    </div>
+  `;
 
   return `
     <article class="resource-card" aria-label="${subject.title}"
@@ -333,3 +361,187 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 }); /* end DOMContentLoaded */
+// ============================================================
+// NOTIFICATION SYSTEM - Bell Icon with Dropdown
+// ============================================================
+
+const GITHUB_USER = 'M0NETIZE101';
+const GITHUB_REPO = 'TUBCA';
+const BRANCH = 'main';
+
+// ── Load notices and update badge ──
+async function loadNotificationBadge() {
+  try {
+    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/notices.json`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.log('No notices file found');
+      return;
+    }
+
+    const notices = await response.json();
+    
+    if (!notices || !notices.length) {
+      document.getElementById('notification-badge').classList.remove('visible');
+      return;
+    }
+
+    // Check which notices have been read (stored in localStorage)
+    const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
+    const unreadCount = notices.filter(n => !readIds.includes(n.id)).length;
+
+    const badge = document.getElementById('notification-badge');
+    if (unreadCount > 0) {
+      badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+      badge.classList.add('visible');
+    } else {
+      badge.classList.remove('visible');
+    }
+  } catch (error) {
+    console.log('Could not load notices:', error);
+  }
+}
+
+// ── Load notices into dropdown ──
+async function loadNoticesIntoDropdown() {
+  const list = document.getElementById('notification-list');
+  if (!list) return;
+
+  try {
+    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/notices.json`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      list.innerHTML = `
+        <div class="notification-empty">
+          <span class="material-symbols-outlined">notifications_off</span>
+          <div>No notices available</div>
+        </div>`;
+      return;
+    }
+
+    const notices = await response.json();
+    
+    if (!notices || !notices.length) {
+      list.innerHTML = `
+        <div class="notification-empty">
+          <span class="material-symbols-outlined">notifications_off</span>
+          <div>No notices yet 📢</div>
+        </div>`;
+      return;
+    }
+
+    // Sort newest first, limit to 5
+    const sorted = [...notices].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const latest = sorted.slice(0, 5);
+
+    // Get read IDs from localStorage
+    const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
+
+    list.innerHTML = latest.map(notice => {
+      const typeClass = notice.type || 'general';
+      const date = new Date(notice.date);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const isUnread = !readIds.includes(notice.id);
+      
+      return `
+        <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notice.id}" onclick="window.location.href='notices.html'">
+          <div class="ntitle">
+            ${escapeHtml(notice.title)}
+            <span class="ntype ${typeClass}">${typeClass}</span>
+          </div>
+          <div class="ndate">${dateStr} · ${escapeHtml(notice.author || 'Admin')}</div>
+          <div class="ncontent">${escapeHtml(notice.content.substring(0, 120))}${notice.content.length > 120 ? '...' : ''}</div>
+        </div>
+      `;
+    }).join('');
+
+    // Mark all as read when dropdown opens
+    // (User sees them, so they're "read")
+    const allIds = latest.map(n => n.id);
+    const newReadIds = [...new Set([...readIds, ...allIds])];
+    localStorage.setItem('read_notice_ids', JSON.stringify(newReadIds));
+    
+    // Update badge
+    await loadNotificationBadge();
+
+  } catch (error) {
+    list.innerHTML = `
+      <div class="notification-empty">
+        <span class="material-symbols-outlined">error_outline</span>
+        <div>Could not load notices</div>
+      </div>`;
+    console.error('Error loading notices:', error);
+  }
+}
+
+// ── Escape HTML for safety ──
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ── Toggle dropdown ──
+function toggleNotificationDropdown() {
+  const dropdown = document.getElementById('notification-dropdown');
+  if (!dropdown) return;
+
+  const isOpen = dropdown.classList.contains('open');
+  dropdown.classList.toggle('open');
+  
+  if (!isOpen) {
+    // Load notices when opening
+    loadNoticesIntoDropdown();
+  }
+}
+
+// ── Mark all as read ──
+function markAllAsRead() {
+  const items = document.querySelectorAll('#notification-list .notification-item');
+  const ids = [];
+  items.forEach(item => {
+    const id = item.dataset.id;
+    if (id) ids.push(parseInt(id));
+    item.classList.remove('unread');
+  });
+  
+  if (ids.length) {
+    const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
+    const newReadIds = [...new Set([...readIds, ...ids])];
+    localStorage.setItem('read_notice_ids', JSON.stringify(newReadIds));
+    loadNotificationBadge();
+  }
+}
+
+// ── Click outside to close dropdown ──
+document.addEventListener('click', function(e) {
+  const wrapper = document.querySelector('.notification-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.classList.remove('open');
+  }
+});
+
+// ── Initialize notifications when DOM is ready ──
+document.addEventListener('DOMContentLoaded', function() {
+  // Load badge count
+  loadNotificationBadge();
+  
+  // Click on notification button
+  const btn = document.getElementById('notification-btn');
+  if (btn) {
+    btn.addEventListener('click', toggleNotificationDropdown);
+  }
+  
+  // Mark all as read button
+  const markReadBtn = document.getElementById('mark-read-btn');
+  if (markReadBtn) {
+    markReadBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      markAllAsRead();
+    });
+  }
+});

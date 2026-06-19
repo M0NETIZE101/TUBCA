@@ -1415,3 +1415,35 @@ ul, ol {
   .player-title { font-size: 15px; }
   .player-desc  { font-size: 13px; }
 }
+/* ── Subject Images ── */
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms ease;
+  background-color: var(--surface-container);
+}
+
+/* Placeholder fallback styles */
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-container), var(--secondary));
+  color: var(--on-primary);
+  font-size: 48px;
+  transition: transform 500ms ease;
+}
+
+.thumb-placeholder .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--on-primary);
+  opacity: 0.8;
+}
+
+/* When image fails to load, show placeholder */
+.card-thumb img[style*="display:none"] + .thumb-placeholder {
+  display: flex !important;
+}

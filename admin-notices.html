@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Create Notice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f0f4f8;
+      font-family: 'Inter', sans-serif;
+      padding: 40px 20px;
+      color: #0a1c2f;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container { max-width: 800px; width: 100%; }
+    .card {
+      background: #fff;
+      border-radius: 28px;
+      padding: 32px 28px;
+      box-shadow: 0 12px 30px rgba(0,32,69,0.08);
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 28px;
+      color: #002045;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header a {
+      color: var(--secondary);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .header a:hover { text-decoration: underline; }
+
+    .subhead { color: #4a5b6e; margin-bottom: 28px; font-size: 14px; }
+
+    .form-group { margin-bottom: 20px; }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      color: #1f3b5c;
+      margin-bottom: 6px;
+    }
+    label .required {
+      color: var(--error);
+      font-weight: 700;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      border: 1.5px solid #dce3ec;
+      border-radius: 16px;
+      transition: 0.2s;
+      background: #fff;
+      color: #0a1c2f;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #0061a5;
+      box-shadow: 0 0 0 3px rgba(0,97,165,0.15);
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5b6e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .token-section {
+      background: #f6f9fe;
+      border-radius: 24px;
+      padding: 16px 18px;
+      margin: 20px 0 16px;
+    }
+    .token-section label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #1f3b5c;
+    }
+    .token-hint {
+      font-size: 11px;
+      color: #4a6f8f;
+      margin-top: 6px;
+    }
+    .token-hint a { color: #0061a5; text-decoration: none; }
+    .token-hint a:hover { text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: #0061a5;
+      color: #fff;
+      border: none;
+      border-radius: 44px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: inherit;
+    }
+    .btn-submit:hover { background: #004b82; transform: scale(0.98); }
+    .btn-submit:disabled { background: #bdcfe0; cursor: not-allowed; transform: none; }
+
+    .status-msg {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+    }
+    .status-msg.success { background: #e0f2e9; color: #146b3a; display: block; }
+    .status-msg.error { background: #fee9e6; color: #b13e2d; display: block; }
+    .status-msg.info { background: #e3f2fd; color: #0d47a1; display: block; }
+
+    .preview-notice {
+      background: #f6f9fe;
+      border-radius: 16px;
+      padding: 16px 18px;
+      margin-top: 20px;
+      border-left: 4px solid #0061a5;
+      transition: border-color 0.3s;
+    }
+    .preview-notice.preview-important { border-left-color: var(--error); }
+    .preview-notice.preview-exam { border-left-color: #ff9800; }
+    .preview-notice.preview-event { border-left-color: #4caf50; }
+    .preview-notice.preview-general { border-left-color: var(--secondary); }
+
+    .preview-notice .preview-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #4a6f8f;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .preview-notice .preview-title {
+      font-weight: 700;
+      font-size: 17px;
+      color: #002045;
+    }
+    .preview-notice .preview-meta {
+      font-size: 12px;
+      color: #4a6f8f;
+      margin: 4px 0 8px;
+    }
+    .preview-notice .preview-content {
+      font-size: 14px;
+      color: #1f3b5c;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: #4a6f8f;
+      text-align: right;
+      margin-top: 4px;
+    }
+    .char-count.warning { color: #e65100; }
+    .char-count.limit { color: var(--error); }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px; }
+      .card { padding: 20px 16px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .header h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="header">
+      <h1><span class="material-symbols-outlined">post_add</span> Create Notice</h1>
+      <a href="notices.html">
+        <span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
+        View Notices
+      </a>
+    </div>
+    <p class="subhead">Post announcements, exam schedules, and events for students. Notices appear instantly on the portal.</p>
+
+    <form id="notice-form" novalidate>
+      <div class="form-group">
+        <label>Title <span class="required">*</span></label>
+        <input type="text" id="notice-title" placeholder="e.g., Mid-Term Exam Schedule 2026" maxlength="100" required />
+        <div class="char-count" id="title-count">0/100</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type <span class="required">*</span></label>
+          <select id="notice-type" required>
+            <option value="general">📌 General</option>
+            <option value="important">⚠️ Important</option>
+            <option value="exam">📝 Exam</option>
+            <option value="event">🎉 Event</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Author</label>
+          <input type="text" id="notice-author" placeholder="e.g., Exam Controller" maxlength="50" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Content <span class="required">*</span></label>
+        <textarea id="notice-content" placeholder="Write your announcement here..." maxlength="2000" required></textarea>
+        <div class="char-count" id="content-count">0/2000</div>
+      </div>
+    </form>
+
+    <!-- Live Preview -->
+    <div class="preview-notice preview-general" id="preview-notice">
+      <div class="preview-label">
+        <span class="material-symbols-outlined" style="font-size:16px;">visibility</span>
+        Live Preview
+      </div>
+      <div class="preview-title" id="preview-title">Your notice title</div>
+      <div class="preview-meta" id="preview-meta">Today · General</div>
+      <div class="preview-content" id="preview-content">Your notice content will appear here...</div>
+    </div>
+
+    <div class="token-section">
+      <label>🔑 GitHub Token</label>
+      <input type="password" id="github-token" placeholder="ghp_your_token_here" style="font-family:monospace;width:100%;padding:10px 14px;border:1.5px solid #dce3ec;border-radius:16px;font-size:14px;" />
+      <div class="token-hint">Needs <strong>repo</strong> scope. Stored in your browser. <a href="https://github.com/settings/tokens" target="_blank">Create token →</a></div>
+    </div>
+
+    <button class="btn-submit" id="submit-btn" disabled>
+      <span class="material-symbols-outlined">publish</span> Post Notice
+    </button>
+
+    <div class="status-msg" id="status-msg"></div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURATION - YOUR GITHUB INFO
+  // ============================================================
+  const GITHUB_USER = 'M0NETIZE101';
+  const GITHUB_REPO = 'TUBCA';
+  const BRANCH = 'main';
+
+  // DOM Elements
+  const titleInput = document.getElementById('notice-title');
+  const typeSelect = document.getElementById('notice-type');
+  const authorInput = document.getElementById('notice-author');
+  const contentInput = document.getElementById('notice-content');
+  const tokenInput = document.getElementById('github-token');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusMsg = document.getElementById('status-msg');
+  const previewNotice = document.getElementById('preview-notice');
+  const previewTitle = document.getElementById('preview-title');
+  const previewMeta = document.getElementById('preview-meta');
+  const previewContent = document.getElementById('preview-content');
+  const titleCount = document.getElementById('title-count');
+  const contentCount = document.getElementById('content-count');
+
+  // Load saved token
+  const savedToken = localStorage.getItem('bcagithub_notice_token');
+  if (savedToken) tokenInput.value = savedToken;
+  tokenInput.addEventListener('input', () => {
+    if (tokenInput.value) localStorage.setItem('bcagithub_notice_token', tokenInput.value);
+    else localStorage.removeItem('bcagithub_notice_token');
+    checkSubmit();
+  });
+
+  function checkSubmit() {
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    const token = tokenInput.value.trim();
+    submitBtn.disabled = !(title && content && token.length > 20);
+  }
+
+  // Character counters
+  titleInput.addEventListener('input', () => {
+    const len = titleInput.value.length;
+    titleCount.textContent = `${len}/100`;
+    titleCount.className = 'char-count' + (len > 80 ? ' warning' : '') + (len >= 100 ? ' limit' : '');
+    updatePreview();
+  });
+
+  contentInput.addEventListener('input', () => {
+    const len = contentInput.value.length;
+    contentCount.textContent = `${len}/2000`;
+    contentCount.className = 'char-count' + (len > 1600 ? ' warning' : '') + (len >= 2000 ? ' limit' : '');
+    updatePreview();
+  });
+
+  // Live preview
+  function updatePreview() {
+    const title = titleInput.value.trim() || 'Your notice title';
+    const type = typeSelect.value;
+    const author = authorInput.value.trim();
+    const content = contentInput.value.trim() || 'Your notice content will appear here...';
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    previewTitle.textContent = title;
+    previewMeta.textContent = `${date} ${author ? '· ' + author : ''}`;
+    previewContent.textContent = content;
+
+    // Update preview border color based on type
+    previewNotice.className = 'preview-notice preview-' + type;
+
+    checkSubmit();
+  }
+
+  titleInput.addEventListener('input', updatePreview);
+  typeSelect.addEventListener('change', updatePreview);
+  authorInput.addEventListener('input', updatePreview);
+  contentInput.addEventListener('input', updatePreview);
+  updatePreview();
+
+  // ============================================================
+  // POST NOTICE TO GITHUB
+  // ============================================================
+
+  async function postNotice() {
+    const title = titleInput.value.trim();
+    const type = typeSelect.value;
+    const author = authorInput.value.trim() || 'Admin';
+    const content = contentInput.value.trim();
+    const token = tokenInput.value.trim();
+
+    if (!title || !content) {
+      showStatus('⚠️ Please fill in all required fields', 'error');
+      return;
+    }
+    if (!token || token.length < 20) {
+      showStatus('🔑 Valid GitHub token required', 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    showStatus('📤 Posting notice...', 'info');
+
+    try {
+      // 1. Get current notices.json
+      const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/notices.json`;
+      let existingNotices = [];
+      let sha = null;
+
+      try {
+        const getRes = await fetch(url, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        if (getRes.ok) {
+          const data = await getRes.json();
+          sha = data.sha;
+          existingNotices = JSON.parse(atob(data.content));
+        }
+      } catch (e) {
+        // File doesn't exist yet - we'll create it
+        console.log('Creating new notices.json');
+      }
+
+      // 2. Add new notice
+      const newNotice = {
+        id: Date.now(),
+        title: title,
+        type: type,
+        author: author,
+        content: content,
+        date: new Date().toISOString()
+      };
+
+      existingNotices.push(newNotice);
+
+      // 3. Upload updated notices.json
+      const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(existingNotices, null, 2))));
+      const payload = {
+        message: `Add notice: ${title}`,
+        content: updatedContent,
+        branch: BRANCH
+      };
+      if (sha) payload.sha = sha;
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!putRes.ok) {
+        const errData = await putRes.json();
+        throw new Error(errData.message || 'Upload failed');
+      }
+
+      showStatus(`✅ Notice posted successfully! Site will update in 2-3 minutes.`, 'success');
+
+      // Reset form
+      titleInput.value = '';
+      authorInput.value = '';
+      contentInput.value = '';
+      typeSelect.value = 'general';
+      updatePreview();
+      checkSubmit();
+
+    } catch (err) {
+      showStatus(`❌ Failed: ${err.message}`, 'error');
+    }
+
+    submitBtn.disabled = false;
+  }
+
+  function showStatus(msg, type) {
+    statusMsg.textContent = msg;
+    statusMsg.className = `status-msg ${type}`;
+    statusMsg.style.display = 'block';
+    // Auto-hide after 6 seconds
+    clearTimeout(window.statusTimeout);
+    window.statusTimeout = setTimeout(() => {
+      statusMsg.style.display = 'none';
+      statusMsg.className = 'status-msg';
+    }, 6000);
+  }
+
+  submitBtn.addEventListener('click', postNotice);
+
+  // Enter key support (Shift+Enter for new line in textarea)
+  contentInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!submitBtn.disabled) postNotice();
+    }
+  });
+
+  // Keyboard shortcut: Ctrl+Enter to submit
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (!submitBtn.disabled) postNotice();
+    }
+  });
+</script>
+</body>
+</html>
