@@ -42,7 +42,12 @@
       align-items: center;
       gap: 10px;
     }
-    .header a {
+    .header .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .header .nav-links a {
       color: var(--secondary);
       font-size: 14px;
       font-weight: 600;
@@ -51,7 +56,7 @@
       align-items: center;
       gap: 6px;
     }
-    .header a:hover { text-decoration: underline; }
+    .header .nav-links a:hover { text-decoration: underline; }
 
     .subhead { color: #4a5b6e; margin-bottom: 28px; font-size: 14px; }
 
@@ -64,10 +69,7 @@
       color: #1f3b5c;
       margin-bottom: 6px;
     }
-    label .required {
-      color: var(--error);
-      font-weight: 700;
-    }
+    label .required { color: var(--error); font-weight: 700; }
     input, select, textarea {
       width: 100%;
       padding: 12px 14px;
@@ -194,23 +196,83 @@
     .char-count.warning { color: #e65100; }
     .char-count.limit { color: var(--error); }
 
+    .password-overlay {
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .password-box {
+      background: white;
+      padding: 40px;
+      border-radius: 28px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .password-box h2 { color: #002045; margin-bottom: 12px; }
+    .password-box p { color: #4a5b6e; margin-bottom: 20px; font-size: 14px; }
+    .password-box input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #dce3ec;
+      border-radius: 16px;
+      font-size: 16px;
+      font-family: 'Inter', sans-serif;
+    }
+    .password-box input:focus { outline: none; border-color: #0061a5; }
+    .password-box .error { color: #ba1a1a; font-size: 13px; margin-top: 10px; display: none; }
+    .password-box .btn-unlock {
+      margin-top: 16px;
+      padding: 12px 40px;
+      background: #0061a5;
+      color: white;
+      border: none;
+      border-radius: 44px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .password-box .btn-unlock:hover { background: #004b82; }
+
     @media (max-width: 600px) {
       body { padding: 20px 12px; }
       .card { padding: 20px 16px; }
       .form-row { grid-template-columns: 1fr; gap: 0; }
       .header h1 { font-size: 22px; }
+      .header .nav-links { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
-<div class="container">
+
+<!-- ── PASSWORD PROTECTION OVERLAY ── -->
+<div class="password-overlay" id="password-overlay">
+  <div class="password-box">
+    <h2>🔐 Admin Access</h2>
+    <p>Enter the password to post notices.</p>
+    <input type="password" id="admin-password" placeholder="Enter password..." autofocus />
+    <div class="error" id="password-error">Incorrect password. Try again.</div>
+    <button class="btn-unlock" id="unlock-btn">Unlock</button>
+  </div>
+</div>
+
+<div class="container" id="main-content" style="display:none;">
   <div class="card">
     <div class="header">
       <h1><span class="material-symbols-outlined">post_add</span> Create Notice</h1>
-      <a href="notices.html">
-        <span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
-        View Notices
-      </a>
+      <div class="nav-links">
+        <a href="notices.html">
+          <span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
+          View Notices
+        </a>
+        <a href="admin.html">
+          <span class="material-symbols-outlined" style="font-size:18px;">cloud_upload</span>
+          Upload PDFs
+        </a>
+      </div>
     </div>
     <p class="subhead">Post announcements, exam schedules, and events for students. Notices appear instantly on the portal.</p>
 
@@ -273,204 +335,225 @@
   // ============================================================
   // CONFIGURATION - YOUR GITHUB INFO
   // ============================================================
-  const GITHUB_USER = 'M0NETIZE101';
-  const GITHUB_REPO = 'TUBCA';
-  const BRANCH = 'main';
+  const CONFIG = {
+    GITHUB_USER: 'M0NETIZE101',
+    GITHUB_REPO: 'TUBCA',
+    BRANCH: 'main',
+    ADMIN_PASSWORD: 'bcadmin2026'  // ← CHANGE THIS!
+  };
 
-  // DOM Elements
-  const titleInput = document.getElementById('notice-title');
-  const typeSelect = document.getElementById('notice-type');
-  const authorInput = document.getElementById('notice-author');
-  const contentInput = document.getElementById('notice-content');
-  const tokenInput = document.getElementById('github-token');
-  const submitBtn = document.getElementById('submit-btn');
-  const statusMsg = document.getElementById('status-msg');
-  const previewNotice = document.getElementById('preview-notice');
-  const previewTitle = document.getElementById('preview-title');
-  const previewMeta = document.getElementById('preview-meta');
-  const previewContent = document.getElementById('preview-content');
-  const titleCount = document.getElementById('title-count');
-  const contentCount = document.getElementById('content-count');
+  // ── PASSWORD PROTECTION ──
+  const passwordOverlay = document.getElementById('password-overlay');
+  const mainContent = document.getElementById('main-content');
+  const passwordInput = document.getElementById('admin-password');
+  const unlockBtn = document.getElementById('unlock-btn');
+  const passwordError = document.getElementById('password-error');
 
-  // Load saved token
-  const savedToken = localStorage.getItem('bcagithub_notice_token');
-  if (savedToken) tokenInput.value = savedToken;
-  tokenInput.addEventListener('input', () => {
-    if (tokenInput.value) localStorage.setItem('bcagithub_notice_token', tokenInput.value);
-    else localStorage.removeItem('bcagithub_notice_token');
-    checkSubmit();
-  });
-
-  function checkSubmit() {
-    const title = titleInput.value.trim();
-    const content = contentInput.value.trim();
-    const token = tokenInput.value.trim();
-    submitBtn.disabled = !(title && content && token.length > 20);
+  function checkPassword() {
+    const entered = passwordInput.value.trim();
+    if (entered === CONFIG.ADMIN_PASSWORD) {
+      passwordOverlay.style.display = 'none';
+      mainContent.style.display = 'block';
+      initApp();
+    } else {
+      passwordError.style.display = 'block';
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
   }
 
-  // Character counters
-  titleInput.addEventListener('input', () => {
-    const len = titleInput.value.length;
-    titleCount.textContent = `${len}/100`;
-    titleCount.className = 'char-count' + (len > 80 ? ' warning' : '') + (len >= 100 ? ' limit' : '');
-    updatePreview();
-  });
+  passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkPassword(); });
+  unlockBtn.addEventListener('click', checkPassword);
 
-  contentInput.addEventListener('input', () => {
-    const len = contentInput.value.length;
-    contentCount.textContent = `${len}/2000`;
-    contentCount.className = 'char-count' + (len > 1600 ? ' warning' : '') + (len >= 2000 ? ' limit' : '');
-    updatePreview();
-  });
+  // ── MAIN APP ──
+  function initApp() {
+    // DOM Elements
+    const titleInput = document.getElementById('notice-title');
+    const typeSelect = document.getElementById('notice-type');
+    const authorInput = document.getElementById('notice-author');
+    const contentInput = document.getElementById('notice-content');
+    const tokenInput = document.getElementById('github-token');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusMsg = document.getElementById('status-msg');
+    const previewNotice = document.getElementById('preview-notice');
+    const previewTitle = document.getElementById('preview-title');
+    const previewMeta = document.getElementById('preview-meta');
+    const previewContent = document.getElementById('preview-content');
+    const titleCount = document.getElementById('title-count');
+    const contentCount = document.getElementById('content-count');
 
-  // Live preview
-  function updatePreview() {
-    const title = titleInput.value.trim() || 'Your notice title';
-    const type = typeSelect.value;
-    const author = authorInput.value.trim();
-    const content = contentInput.value.trim() || 'Your notice content will appear here...';
-    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    // Load saved token
+    const savedToken = localStorage.getItem('bcagithub_notice_token');
+    if (savedToken) tokenInput.value = savedToken;
+    tokenInput.addEventListener('input', () => {
+      if (tokenInput.value) localStorage.setItem('bcagithub_notice_token', tokenInput.value);
+      else localStorage.removeItem('bcagithub_notice_token');
+      checkSubmit();
+    });
 
-    previewTitle.textContent = title;
-    previewMeta.textContent = `${date} ${author ? '· ' + author : ''}`;
-    previewContent.textContent = content;
-
-    // Update preview border color based on type
-    previewNotice.className = 'preview-notice preview-' + type;
-
-    checkSubmit();
-  }
-
-  titleInput.addEventListener('input', updatePreview);
-  typeSelect.addEventListener('change', updatePreview);
-  authorInput.addEventListener('input', updatePreview);
-  contentInput.addEventListener('input', updatePreview);
-  updatePreview();
-
-  // ============================================================
-  // POST NOTICE TO GITHUB
-  // ============================================================
-
-  async function postNotice() {
-    const title = titleInput.value.trim();
-    const type = typeSelect.value;
-    const author = authorInput.value.trim() || 'Admin';
-    const content = contentInput.value.trim();
-    const token = tokenInput.value.trim();
-
-    if (!title || !content) {
-      showStatus('⚠️ Please fill in all required fields', 'error');
-      return;
-    }
-    if (!token || token.length < 20) {
-      showStatus('🔑 Valid GitHub token required', 'error');
-      return;
+    function checkSubmit() {
+      const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      const token = tokenInput.value.trim();
+      submitBtn.disabled = !(title && content && token.length > 20);
     }
 
-    submitBtn.disabled = true;
-    showStatus('📤 Posting notice...', 'info');
+    // Character counters
+    titleInput.addEventListener('input', () => {
+      const len = titleInput.value.length;
+      titleCount.textContent = `${len}/100`;
+      titleCount.className = 'char-count' + (len > 80 ? ' warning' : '') + (len >= 100 ? ' limit' : '');
+      updatePreview();
+    });
 
-    try {
-      // 1. Get current notices.json
-      const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/notices.json`;
-      let existingNotices = [];
-      let sha = null;
+    contentInput.addEventListener('input', () => {
+      const len = contentInput.value.length;
+      contentCount.textContent = `${len}/2000`;
+      contentCount.className = 'char-count' + (len > 1600 ? ' warning' : '') + (len >= 2000 ? ' limit' : '');
+      updatePreview();
+    });
+
+    // Live preview
+    function updatePreview() {
+      const title = titleInput.value.trim() || 'Your notice title';
+      const type = typeSelect.value;
+      const author = authorInput.value.trim();
+      const content = contentInput.value.trim() || 'Your notice content will appear here...';
+      const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      previewTitle.textContent = title;
+      previewMeta.textContent = `${date} ${author ? '· ' + author : ''}`;
+      previewContent.textContent = content;
+      previewNotice.className = 'preview-notice preview-' + type;
+      checkSubmit();
+    }
+
+    titleInput.addEventListener('input', updatePreview);
+    typeSelect.addEventListener('change', updatePreview);
+    authorInput.addEventListener('input', updatePreview);
+    contentInput.addEventListener('input', updatePreview);
+    updatePreview();
+
+    // ── FIXED: Safe base64 decode ──
+    function safeBase64Decode(encoded) {
+      const clean = encoded.replace(/\s/g, '');
+      return atob(clean);
+    }
+
+    // ── POST NOTICE ──
+    async function postNotice() {
+      const title = titleInput.value.trim();
+      const type = typeSelect.value;
+      const author = authorInput.value.trim() || 'Admin';
+      const content = contentInput.value.trim();
+      const token = tokenInput.value.trim();
+
+      if (!title || !content) {
+        showStatus('⚠️ Please fill in all required fields', 'error');
+        return;
+      }
+      if (!token || token.length < 20) {
+        showStatus('🔑 Valid GitHub token required', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      showStatus('📤 Posting notice...', 'info');
 
       try {
-        const getRes = await fetch(url, {
-          headers: { 'Authorization': `token ${token}` }
-        });
-        if (getRes.ok) {
-          const data = await getRes.json();
-          sha = data.sha;
-          existingNotices = JSON.parse(atob(data.content));
+        const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/notices.json`;
+        let existingNotices = [];
+        let sha = null;
+
+        try {
+          const getRes = await fetch(url, {
+            headers: { 'Authorization': `token ${token}` }
+          });
+          if (getRes.ok) {
+            const data = await getRes.json();
+            sha = data.sha;
+            existingNotices = JSON.parse(safeBase64Decode(data.content));
+          }
+        } catch (e) {
+          console.log('Creating new notices.json');
         }
-      } catch (e) {
-        // File doesn't exist yet - we'll create it
-        console.log('Creating new notices.json');
+
+        const newNotice = {
+          id: Date.now(),
+          title: title,
+          type: type,
+          author: author,
+          content: content,
+          date: new Date().toISOString()
+        };
+
+        existingNotices.push(newNotice);
+
+        const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(existingNotices, null, 2))));
+        const payload = {
+          message: `Add notice: ${title}`,
+          content: updatedContent,
+          branch: CONFIG.BRANCH
+        };
+        if (sha) payload.sha = sha;
+
+        const putRes = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!putRes.ok) {
+          const errData = await putRes.json();
+          throw new Error(errData.message || 'Upload failed');
+        }
+
+        showStatus(`✅ Notice posted successfully! Site will update in 2-3 minutes.`, 'success');
+
+        titleInput.value = '';
+        authorInput.value = '';
+        contentInput.value = '';
+        typeSelect.value = 'general';
+        updatePreview();
+        checkSubmit();
+
+      } catch (err) {
+        showStatus(`❌ Failed: ${err.message}`, 'error');
       }
 
-      // 2. Add new notice
-      const newNotice = {
-        id: Date.now(),
-        title: title,
-        type: type,
-        author: author,
-        content: content,
-        date: new Date().toISOString()
-      };
+      submitBtn.disabled = false;
+    }
 
-      existingNotices.push(newNotice);
+    function showStatus(msg, type) {
+      statusMsg.textContent = msg;
+      statusMsg.className = `status-msg ${type}`;
+      statusMsg.style.display = 'block';
+      clearTimeout(window.statusTimeout);
+      window.statusTimeout = setTimeout(() => {
+        statusMsg.style.display = 'none';
+        statusMsg.className = 'status-msg';
+      }, 6000);
+    }
 
-      // 3. Upload updated notices.json
-      const updatedContent = btoa(unescape(encodeURIComponent(JSON.stringify(existingNotices, null, 2))));
-      const payload = {
-        message: `Add notice: ${title}`,
-        content: updatedContent,
-        branch: BRANCH
-      };
-      if (sha) payload.sha = sha;
+    submitBtn.addEventListener('click', postNotice);
 
-      const putRes = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!putRes.ok) {
-        const errData = await putRes.json();
-        throw new Error(errData.message || 'Upload failed');
+    contentInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!submitBtn.disabled) postNotice();
       }
+    });
 
-      showStatus(`✅ Notice posted successfully! Site will update in 2-3 minutes.`, 'success');
-
-      // Reset form
-      titleInput.value = '';
-      authorInput.value = '';
-      contentInput.value = '';
-      typeSelect.value = 'general';
-      updatePreview();
-      checkSubmit();
-
-    } catch (err) {
-      showStatus(`❌ Failed: ${err.message}`, 'error');
-    }
-
-    submitBtn.disabled = false;
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!submitBtn.disabled) postNotice();
+      }
+    });
   }
-
-  function showStatus(msg, type) {
-    statusMsg.textContent = msg;
-    statusMsg.className = `status-msg ${type}`;
-    statusMsg.style.display = 'block';
-    // Auto-hide after 6 seconds
-    clearTimeout(window.statusTimeout);
-    window.statusTimeout = setTimeout(() => {
-      statusMsg.style.display = 'none';
-      statusMsg.className = 'status-msg';
-    }, 6000);
-  }
-
-  submitBtn.addEventListener('click', postNotice);
-
-  // Enter key support (Shift+Enter for new line in textarea)
-  contentInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!submitBtn.disabled) postNotice();
-    }
-  });
-
-  // Keyboard shortcut: Ctrl+Enter to submit
-  document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      e.preventDefault();
-      if (!submitBtn.disabled) postNotice();
-    }
-  });
 </script>
 </body>
 </html>
