@@ -68,15 +68,34 @@ if(subject){
   document.getElementById('subject-title').textContent='Subject Not Found';
 }
 
-const TAB_ICONS={notes:'menu_book',questionPapers:'assignment',labReports:'science',assignments:'edit_note'};
-const LABEL_MAP={notes:'notes',questionPapers:'question papers',labReports:'lab reports',assignments:'assignments'};
+// ─── FIXED: Use hyphenated names to match files.js ───
+const TAB_ICONS = {
+  notes: 'menu_book',
+  'question-papers': 'assignment',    // ✅ Fixed
+  'lab-reports': 'science',           // ✅ Fixed
+  assignments: 'edit_note'
+};
+
+const LABEL_MAP = {
+  notes: 'notes',
+  'question-papers': 'question papers', // ✅ Fixed
+  'lab-reports': 'lab reports',         // ✅ Fixed
+  assignments: 'assignments'
+};
 
 // Check if FILES exists
 if (typeof FILES === 'undefined') {
   console.error('FILES is not defined - make sure files.js is loaded');
   document.getElementById('subject-title').textContent = 'Error: Data not loaded';
 }
-const subjectFiles = (subCode && FILES && FILES[subCode]) || {notes:[], questionPapers:[], labReports:[], assignments:[]};
+
+// ─── FIXED: Use hyphenated names ───
+const subjectFiles = (subCode && FILES && FILES[subCode]) || {
+  notes: [],
+  'question-papers': [],   // ✅ Fixed
+  'lab-reports': [],       // ✅ Fixed
+  assignments: []
+};
 
 function renderFileList(tabKey){
   const files=subjectFiles[tabKey]||[];
@@ -105,7 +124,9 @@ function renderFileList(tabKey){
     item.addEventListener('keydown',e=>{if(e.key==='Enter')openFile(item.dataset.tab,+item.dataset.index);});
   });
 }
-['notes','questionPapers','labReports','assignments'].forEach(renderFileList);
+
+// ─── FIXED: Use hyphenated names ───
+['notes', 'question-papers', 'lab-reports', 'assignments'].forEach(renderFileList);
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
