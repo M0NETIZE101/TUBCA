@@ -71,15 +71,15 @@ if(subject){
 // ─── FIXED: Use hyphenated names to match files.js ───
 const TAB_ICONS = {
   notes: 'menu_book',
-  'question-papers': 'assignment',    // ✅ Fixed
-  'lab-reports': 'science',           // ✅ Fixed
+  'question-papers': 'assignment',
+  'lab-reports': 'science',
   assignments: 'edit_note'
 };
 
 const LABEL_MAP = {
   notes: 'notes',
-  'question-papers': 'question papers', // ✅ Fixed
-  'lab-reports': 'lab reports',         // ✅ Fixed
+  'question-papers': 'question papers',
+  'lab-reports': 'lab reports',
   assignments: 'assignments'
 };
 
@@ -92,25 +92,35 @@ if (typeof FILES === 'undefined') {
 // ─── FIXED: Use hyphenated names ───
 const subjectFiles = (subCode && FILES && FILES[subCode]) || {
   notes: [],
-  'question-papers': [],   // ✅ Fixed
-  'lab-reports': [],       // ✅ Fixed
+  'question-papers': [],
+  'lab-reports': [],
   assignments: []
 };
 
+// ─── FIXED: renderFileList with null check ───
 function renderFileList(tabKey){
-  const files=subjectFiles[tabKey]||[];
-  const listEl=document.getElementById('list-'+tabKey);
-  const countEl=document.getElementById('count-'+tabKey);
-  if(countEl) countEl.textContent=files.length;
+  const files = subjectFiles[tabKey] || [];
+  const listEl = document.getElementById('list-' + tabKey);
+  
+  // ─── FIXED: Check if element exists ───
+  if (!listEl) {
+    console.warn('Element not found: list-' + tabKey);
+    return;
+  }
+  
+  const countEl = document.getElementById('count-' + tabKey);
+  if(countEl) countEl.textContent = files.length;
+  
   if(!files.length){
-    listEl.innerHTML=`<div class="empty-tab">
-      <span class="material-symbols-outlined">${TAB_ICONS[tabKey]}</span>
+    listEl.innerHTML = `<div class="empty-tab">
+      <span class="material-symbols-outlined">${TAB_ICONS[tabKey] || 'description'}</span>
       <h3>No files yet</h3>
-      <p>No ${LABEL_MAP[tabKey]} uploaded for this subject yet.</p>
+      <p>No ${LABEL_MAP[tabKey] || tabKey} uploaded for this subject yet.</p>
     </div>`;
     return;
   }
-  listEl.innerHTML=files.map((f,i)=>`
+  
+  listEl.innerHTML = files.map((f,i)=>`
     <div class="file-item" data-tab="${tabKey}" data-index="${i}" tabindex="0" role="button">
       <div class="file-icon"><span class="material-symbols-outlined">picture_as_pdf</span></div>
       <div class="file-info">
@@ -119,6 +129,7 @@ function renderFileList(tabKey){
       </div>
       <span class="material-symbols-outlined file-arrow">arrow_forward</span>
     </div>`).join('');
+    
   listEl.querySelectorAll('.file-item').forEach(item=>{
     item.addEventListener('click',()=>openFile(item.dataset.tab,+item.dataset.index));
     item.addEventListener('keydown',e=>{if(e.key==='Enter')openFile(item.dataset.tab,+item.dataset.index);});
@@ -139,15 +150,17 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 function openFile(tabKey,index){
-  const file=(subjectFiles[tabKey]||[])[index];
+  const file = (subjectFiles[tabKey] || [])[index];
   if(!file) return;
   document.querySelectorAll('.file-item').forEach(i=>i.classList.remove('active-file'));
   document.querySelectorAll(`[data-tab="${tabKey}"][data-index="${index}"]`).forEach(i=>i.classList.add('active-file'));
-  document.getElementById('viewer-file-title').textContent=file.title;
+  document.getElementById('viewer-file-title').textContent = file.title;
 
-  const viewerSection=document.getElementById('viewer-section');
-  viewerSection.classList.add('visible');
-  viewerSection.scrollIntoView({behavior:'smooth',block:'start'});
+  const viewerSection = document.getElementById('viewer-section');
+  if (viewerSection) {
+    viewerSection.classList.add('visible');
+    viewerSection.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 
   // Set download button href
   const downloadBtn = document.getElementById('download-btn');
@@ -159,30 +172,34 @@ function openFile(tabKey,index){
 }
 
 /* ── PDF.js continuous scroll viewer ── */
-pdfjsLib.GlobalWorkerOptions.workerSrc=
+pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-let pdfDoc=null, totalPages=1, zoomScale='auto', pageCanvases=[];
+// ─── FIXED: Move all declarations to the top ───
+let pdfDoc = null;
+let totalPages = 1;
+let zoomScale = 'auto';
+let pageCanvases = [];
 
 const pagesContainer = document.getElementById('pdf-pages-container');
-const scrollWrap     = document.getElementById('canvas-wrap');
-const pageInfo       = document.getElementById('page-info');
-const loadingEl      = document.getElementById('pdf-loading');
-const noPdfEl        = document.getElementById('no-pdf-state');
-const singleCanvas   = document.getElementById('pdf-canvas');
-const downloadBtn    = document.getElementById('download-btn');
+const scrollWrap = document.getElementById('canvas-wrap');
+const pageInfo = document.getElementById('page-info');
+const loadingEl = document.getElementById('pdf-loading');
+const noPdfEl = document.getElementById('no-pdf-state');
+const singleCanvas = document.getElementById('pdf-canvas');
+const downloadBtn = document.getElementById('download-btn');
 
 function containerWidth(){
   if(!scrollWrap) return window.innerWidth * 0.88;
-  const cs  = getComputedStyle(scrollWrap);
+  const cs = getComputedStyle(scrollWrap);
   const pad = parseFloat(cs.paddingLeft||0) + parseFloat(cs.paddingRight||0);
-  const w   = scrollWrap.clientWidth - pad - 24;
+  const w = scrollWrap.clientWidth - pad - 24;
   return Math.max(w > 10 ? w : window.innerWidth * 0.88, 40);
 }
 
 function calcScale(pageViewport){
   if(zoomScale!=='auto') return zoomScale;
-  const cw  = containerWidth();
+  const cw = containerWidth();
   const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const fit = cw / pageViewport.width;
   return Math.min(fit * dpr, 3.0 * dpr);
@@ -192,13 +209,13 @@ function renderOnePage(pageNum){
   if(!pdfDoc) return Promise.resolve();
   return pdfDoc.getPage(pageNum).then(page=>{
     const baseVp = page.getViewport({scale:1});
-    const sc     = calcScale(baseVp);
-    const vp     = page.getViewport({scale:sc});
+    const sc = calcScale(baseVp);
+    const vp = page.getViewport({scale:sc});
     const canvas = pageCanvases[pageNum-1];
     if(!canvas) return;
-    canvas.width  = vp.width;
+    canvas.width = vp.width;
     canvas.height = vp.height;
-    canvas.style.width  = '100%';
+    canvas.style.width = '100%';
     canvas.style.height = 'auto';
     return page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
   });
@@ -211,12 +228,12 @@ function renderAllPages(){
   pageCanvases=[];
 
   for(let i=1;i<=totalPages;i++){
-    const wrap   = document.createElement('div');
-    wrap.className    = 'pdf-page-wrap';
+    const wrap = document.createElement('div');
+    wrap.className = 'pdf-page-wrap';
     wrap.dataset.page = i;
 
     const lbl = document.createElement('div');
-    lbl.className   = 'pdf-page-label';
+    lbl.className = 'pdf-page-label';
     lbl.textContent = 'Page '+i+' of '+totalPages;
 
     const canvas = document.createElement('canvas');
@@ -237,8 +254,9 @@ function renderAllPages(){
 }
 
 function loadPDF(url){
-  pdfDoc=null; pageCanvases=[];
-  const oldWraps=pagesContainer.querySelectorAll('.pdf-page-wrap');
+  pdfDoc=null; 
+  pageCanvases=[];
+  const oldWraps = pagesContainer.querySelectorAll('.pdf-page-wrap');
   oldWraps.forEach(w=>w.remove());
   singleCanvas.style.display='none';
   loadingEl.style.display='flex';
@@ -251,7 +269,9 @@ function loadPDF(url){
 
   pdfjsLib.getDocument(url).promise
     .then(pdf=>{
-      pdfDoc=pdf; totalPages=pdf.numPages; zoomScale='auto';
+      pdfDoc=pdf; 
+      totalPages=pdf.numPages; 
+      zoomScale='auto';
       loadingEl.style.display='none';
       pageInfo.textContent='Page 1 of '+totalPages;
       const ji=document.getElementById('page-jump-input');
@@ -269,74 +289,123 @@ function loadPDF(url){
     });
 }
 
-scrollWrap && scrollWrap.addEventListener('scroll',()=>{
-  if(!pdfDoc) return;
-  const mid=scrollWrap.scrollTop+scrollWrap.clientHeight*0.4;
-  let cur=1;
-  pagesContainer.querySelectorAll('.pdf-page-wrap').forEach(wrap=>{
-    if(wrap.offsetTop<=mid) cur=parseInt(wrap.dataset.page);
+// ─── FIXED: Check if scrollWrap exists before adding listener ───
+if (scrollWrap) {
+  scrollWrap.addEventListener('scroll', ()=>{
+    if(!pdfDoc) return;
+    const mid = scrollWrap.scrollTop + scrollWrap.clientHeight * 0.4;
+    let cur = 1;
+    pagesContainer.querySelectorAll('.pdf-page-wrap').forEach(wrap=>{
+      if(wrap.offsetTop <= mid) cur = parseInt(wrap.dataset.page);
+    });
+    pageInfo.textContent = 'Page '+cur+' of '+totalPages;
+    const ji = document.getElementById('page-jump-input');
+    if(ji) ji.value = cur;
   });
-  pageInfo.textContent='Page '+cur+' of '+totalPages;
-  const ji=document.getElementById('page-jump-input');
-  if(ji) ji.value=cur;
-});
+}
 
 function scrollToPage(num){
   if(!pdfDoc||num<1||num>totalPages) return;
-  const wrap=pagesContainer.querySelector(`[data-page="${num}"]`);
-  if(wrap&&scrollWrap){
+  const wrap = pagesContainer.querySelector(`[data-page="${num}"]`);
+  if(wrap && scrollWrap){
     scrollWrap.scrollTo({top:wrap.offsetTop-8,behavior:'smooth'});
   }
 }
 
-document.getElementById('prev-page').addEventListener('click',()=>{
-  const ji=document.getElementById('page-jump-input');
-  const cur=parseInt(ji?ji.value:1)||1;
-  if(cur>1) scrollToPage(cur-1);
-});
-document.getElementById('next-page').addEventListener('click',()=>{
-  const ji=document.getElementById('page-jump-input');
-  const cur=parseInt(ji?ji.value:1)||1;
-  if(cur<totalPages) scrollToPage(cur+1);
-});
+// ─── FIXED: Check if elements exist before adding listeners ───
+const prevBtn = document.getElementById('prev-page');
+const nextBtn = document.getElementById('next-page');
 
-const pageJumpInput=document.getElementById('page-jump-input');
-function jumpToPage(){
-  const val=parseInt(pageJumpInput.value);
-  if(!isNaN(val)&&val>=1&&val<=totalPages) scrollToPage(val);
-  else pageJumpInput.value=parseInt(pageInfo.textContent)||1;
+if (prevBtn) {
+  prevBtn.addEventListener('click', ()=>{
+    const ji = document.getElementById('page-jump-input');
+    const cur = parseInt(ji ? ji.value : 1) || 1;
+    if(cur > 1) scrollToPage(cur - 1);
+  });
 }
-pageJumpInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();jumpToPage();}});
-pageJumpInput.addEventListener('blur',jumpToPage);
 
-document.getElementById('zoom-in').addEventListener('click',()=>{
-  if(!pdfDoc) return;
-  pdfDoc.getPage(1).then(p=>{
-    const b=p.getViewport({scale:1});
-    const c=zoomScale==='auto'?calcScale(b):zoomScale;
-    zoomScale=Math.min(+(c+0.25).toFixed(2),3.0);
-    renderAllPages();
+if (nextBtn) {
+  nextBtn.addEventListener('click', ()=>{
+    const ji = document.getElementById('page-jump-input');
+    const cur = parseInt(ji ? ji.value : 1) || 1;
+    if(cur < totalPages) scrollToPage(cur + 1);
   });
-});
-document.getElementById('zoom-out').addEventListener('click',()=>{
-  if(!pdfDoc) return;
-  pdfDoc.getPage(1).then(p=>{
-    const b=p.getViewport({scale:1});
-    const c=zoomScale==='auto'?calcScale(b):zoomScale;
-    zoomScale=Math.max(+(c-0.25).toFixed(2),0.4);
-    renderAllPages();
+}
+
+const pageJumpInput = document.getElementById('page-jump-input');
+
+function jumpToPage(){
+  const val = parseInt(pageJumpInput.value);
+  if(!isNaN(val) && val >= 1 && val <= totalPages) {
+    scrollToPage(val);
+  } else {
+    pageJumpInput.value = parseInt(pageInfo.textContent) || 1;
+  }
+}
+
+if (pageJumpInput) {
+  pageJumpInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') {
+      e.preventDefault();
+      jumpToPage();
+    }
   });
-});
+  pageJumpInput.addEventListener('blur', jumpToPage);
+}
+
+const zoomInBtn = document.getElementById('zoom-in');
+const zoomOutBtn = document.getElementById('zoom-out');
+
+if (zoomInBtn) {
+  zoomInBtn.addEventListener('click', ()=>{
+    if(!pdfDoc) return;
+    pdfDoc.getPage(1).then(p=>{
+      const b = p.getViewport({scale:1});
+      const c = zoomScale === 'auto' ? calcScale(b) : zoomScale;
+      zoomScale = Math.min(+(c + 0.25).toFixed(2), 3.0);
+      renderAllPages();
+    });
+  });
+}
+
+if (zoomOutBtn) {
+  zoomOutBtn.addEventListener('click', ()=>{
+    if(!pdfDoc) return;
+    pdfDoc.getPage(1).then(p=>{
+      const b = p.getViewport({scale:1});
+      const c = zoomScale === 'auto' ? calcScale(b) : zoomScale;
+      zoomScale = Math.max(+(c - 0.25).toFixed(2), 0.4);
+      renderAllPages();
+    });
+  });
+}
 
 let resizeTimer;
-window.addEventListener('resize',()=>{
+window.addEventListener('resize', ()=>{
   clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{if(pdfDoc){zoomScale='auto';renderAllPages();}},300);
+  resizeTimer = setTimeout(()=>{
+    if(pdfDoc) {
+      zoomScale = 'auto';
+      renderAllPages();
+    }
+  }, 300);
 });
 
 /* ── Sidebar ── */
-const sidebar=document.getElementById('sidebar');
-const sidebarOverlay=document.getElementById('sidebar-overlay');
-const sidebarToggle=document.getElementById('sidebar-toggle');
-if(sidebarToggle)  sidebarToggle.addEventListener('click',()=>{sidebar.classList.toggle('is-open');sidebarOverlay.classList.toggle('is-open');});
-if(sidebarOverlay) sidebarOverlay.addEventListener('click',()=>{sidebar.classList.remove('is-open');sidebarOverlay.classList.remove('is-open');});
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+
+if(sidebarToggle) {
+  sidebarToggle.addEventListener('click', ()=>{
+    sidebar.classList.toggle('is-open');
+    sidebarOverlay.classList.toggle('is-open');
+  });
+}
+
+if(sidebarOverlay) {
+  sidebarOverlay.addEventListener('click', ()=>{
+    sidebar.classList.remove('is-open');
+    sidebarOverlay.classList.remove('is-open');
+  });
+}
