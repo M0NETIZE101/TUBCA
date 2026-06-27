@@ -574,13 +574,13 @@
 
     // ── FIXED: Safe base64 decode that handles newlines ──
     function safeBase64Decode(encoded) {
-      // Remove newlines, spaces, and any whitespace characters
       const clean = encoded.replace(/\s/g, '');
       return atob(clean);
     }
 
     // ── FIXED: Update files.js with proper regex and duplicate detection ──
-    async function updateFilesJS(subject, type, newEntry, token, existingSha = null) {
+    // ── FIXED: Now accepts customTitle as separate parameter ──
+    async function updateFilesJS(subject, type, newEntry, customTitle, token, existingSha = null) {
       const filePath = 'js/files.js';
       const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/${filePath}`;
 
@@ -602,8 +602,7 @@
           throw new Error(`Cannot read files.js: ${err.message}`);
         }
       } else {
-        // If SHA provided, we already have the content
-        // We need to fetch the latest content to merge
+        // If SHA provided, we still need the latest content to merge
         try {
           const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
           if (getRes.ok) {
@@ -619,7 +618,6 @@
       }
 
       // ── FIXED: Parse subject block using a proper parser ──
-      // We'll parse line by line to avoid regex issues
       const lines = currentContent.split('\n');
       let updatedLines = [];
       let subjectFound = false;
@@ -632,7 +630,7 @@
       let braceDepth = 0;
       let inSubject = false;
       let inTypeArray = false;
-      let skipUntilBrace = false;
+      let updatedContent = '';  // ← FIXED: Declared at function scope
 
       // Find the subject and type sections
       for (let i = 0; i < lines.length; i++) {
@@ -644,11 +642,8 @@
           subjectFound = true;
           inSubject = true;
           subjectStartLine = i;
-          // Find the opening brace
           const braceIndex = line.indexOf('{');
           if (braceIndex !== -1) {
-            braceDepth = 1;
-            // Count braces on this line
             const openBraces = (line.match(/{/g) || []).length;
             const closeBraces = (line.match(/}/g) || []).length;
             braceDepth = openBraces - closeBraces;
@@ -659,12 +654,10 @@
         }
 
         if (inSubject) {
-          // Count braces to find end of subject
           const openBraces = (line.match(/{/g) || []).length;
           const closeBraces = (line.match(/}/g) || []).length;
           braceDepth += openBraces - closeBraces;
 
-          // Check if this line starts the type array
           if (trimmed.startsWith(`${type}:`) || trimmed.startsWith(`"${type}":`)) {
             typeFound = true;
             typeStartLine = i;
@@ -672,14 +665,12 @@
           }
 
           if (inTypeArray) {
-            // Check if this line ends the type array
             if (trimmed.includes(']') && !trimmed.includes('[')) {
               typeEndLine = i;
               inTypeArray = false;
             }
           }
 
-          // Check if we've reached the end of the subject
           if (braceDepth === 0) {
             subjectEndLine = i;
             inSubject = false;
@@ -698,7 +689,6 @@
     assignments: [],
     ${type}: [${newEntry}]
   },`;
-        // Insert after the last line before the closing brace of FILES
         let insertIndex = lines.length - 1;
         for (let i = lines.length - 1; i >= 0; i--) {
           if (lines[i].includes('const FILES = {')) {
@@ -711,20 +701,16 @@
         updatedContent = updatedLines.join('\n');
       } else if (!typeFound) {
         // Type doesn't exist in subject - add it before the closing brace
-        const beforeEnd = subjectEndLine - 1;
-        // Find the last non-empty line before the closing brace
         let insertLine = subjectEndLine - 1;
         while (insertLine > subjectStartLine && lines[insertLine].trim() === '') {
           insertLine--;
         }
-        // Insert after the last property
         const newTypeLine = `    ${type}: [${newEntry}]`;
         updatedLines = [...lines];
         updatedLines.splice(insertLine + 1, 0, newTypeLine);
         updatedContent = updatedLines.join('\n');
       } else {
         // Type exists - append to the array
-        // Find the closing bracket of the type array
         let arrayStart = -1;
         let arrayEnd = -1;
         let bracketDepth = 0;
@@ -741,21 +727,17 @@
         }
 
         if (arrayEnd !== -1) {
-          // Check if the array is empty or has content
           const arrayContent = lines.slice(typeStartLine, arrayEnd + 1).join('\n');
           const hasContent = arrayContent.includes('{');
           
           let newEntryFormatted = `\n      ${newEntry}`;
           
           if (hasContent) {
-            // Insert before the closing bracket
             updatedLines = [...lines];
-            // Find the last non-empty line before the closing bracket
             let insertIndex = arrayEnd;
             while (insertIndex > typeStartLine && lines[insertIndex].trim() === '') {
               insertIndex--;
             }
-            // Add comma to the last item if needed
             let lastLine = updatedLines[insertIndex];
             if (!lastLine.trim().endsWith(',') && !lastLine.trim().endsWith('[')) {
               updatedLines[insertIndex] = lastLine + ',';
@@ -763,10 +745,8 @@
             updatedLines.splice(insertIndex + 1, 0, newEntryFormatted);
             updatedContent = updatedLines.join('\n');
           } else {
-            // Empty array - just add the entry between brackets
-            const beforeBracket = lines.slice(0, arrayEnd).join('\n');
-            const afterBracket = lines.slice(arrayEnd + 1).join('\n');
-            // Find the opening bracket line
+            // Empty array - preserve formatting without removing blank lines
+            updatedLines = [...lines];
             let openBracketLine = typeStartLine;
             for (let i = typeStartLine; i <= arrayEnd; i++) {
               if (lines[i].includes('[')) {
@@ -774,25 +754,39 @@
                 break;
               }
             }
-            const bracketLine = lines[openBracketLine];
-            const indent = bracketLine.match(/^\s*/)[0];
-            const newArrayContent = `[${newEntry}]`;
-            updatedLines = [...lines];
-            updatedLines[openBracketLine] = bracketLine.replace(/\[/, `[${newEntry}`);
-            // Remove any empty lines between
-            for (let i = openBracketLine + 1; i <= arrayEnd; i++) {
-              if (updatedLines[i].trim() === '' || updatedLines[i].trim() === ']') {
-                updatedLines[i] = '';
+            // Find the content between [ and ]
+            let bracketContent = '';
+            let startIdx = -1;
+            for (let i = openBracketLine; i <= arrayEnd; i++) {
+              if (startIdx === -1 && lines[i].includes('[')) {
+                startIdx = lines[i].indexOf('[');
+              }
+              if (startIdx !== -1) {
+                bracketContent += lines[i].substring(startIdx);
+                if (lines[i].includes(']')) break;
+                bracketContent += '\n';
+                startIdx = 0;
               }
             }
-            updatedContent = updatedLines.filter(line => line.trim() !== '' || line.includes('const')).join('\n');
+            // Replace the bracket content with the new entry
+            const bracketLine = lines[openBracketLine];
+            const indent = bracketLine.match(/^\s*/)[0];
+            // Find where to insert
+            let insertLine = openBracketLine;
+            while (insertLine < lines.length && !lines[insertLine].includes(']')) {
+              insertLine++;
+            }
+            const closingBracketLine = lines[insertLine];
+            // Replace with formatted content
+            updatedLines[openBracketLine] = bracketLine.replace(/\[/, `[${newEntry}`);
+            // Keep any blank lines for formatting - don't remove them
+            updatedContent = updatedLines.join('\n');
           }
         } else {
-          // Fallback: simple replacement
+          // Fallback: simple replacement using regex
           const subjectRegex = new RegExp(`"${subject}"\\s*:\\s*\\{`, 's');
           const match = subjectRegex.exec(currentContent);
           if (match) {
-            // Find the type array and append
             const typeRegex = new RegExp(`(${type}\\s*:\\s*\\[)\\s*\\]`, 's');
             updatedContent = currentContent.replace(typeRegex, `$1${newEntry}\n    ]`);
           } else {
@@ -804,7 +798,7 @@
       // Upload updated files.js
       const updatedBase64 = btoa(unescape(encodeURIComponent(updatedContent)));
       const payload = {
-        message: `Auto-update files.js: added "${newEntry.title}" to ${subject}/${type}`,
+        message: `Auto-update files.js: added "${customTitle}" to ${subject}/${type}`,  // ← FIXED: Uses customTitle
         content: updatedBase64,
         branch: CONFIG.BRANCH
       };
@@ -909,7 +903,8 @@
           const dateStr = formatDate();
           
           const newEntry = `\n      { title: "${customTitle.replace(/"/g, '\\"')}", file: "${filePath}", date: "${dateStr}" }`;
-          await updateFilesJS(subject, type, newEntry, token, filesSha);
+          // ← FIXED: Passing customTitle separately
+          await updateFilesJS(subject, type, newEntry, customTitle, token, filesSha);
           
           // Get the new SHA after update for subsequent updates
           const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/js/files.js`;
