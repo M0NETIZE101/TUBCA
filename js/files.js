@@ -81,6 +81,9 @@ const FILES = {
       { title: "Chapter 1-Introduction", file: "pdfs/BCA-155/notes/Chapter 1-Introduction.pdf", date: "June 02, 2026" },
       { title: "Second Chapter", file: "pdfs/BCA-155/notes/Second_Chapter.pdf", date: "Jun 18, 2026" }
     ],
+
+      
+      { title: "Third Chapter Note", file: "pdfs/BCA-155/notes/Third_Chapter_Note.pdf", date: "Jul 9, 2026" }
     "question-papers": [
       { title: "Unit Test Set A[Chapter 1]", file: "pdfs/BCA-155/question-papers/Unit_Test_Set_A.pdf", date: "Jun 18, 2026" },
       { title: "Unit Test Set B[Chapter 1]", file: "pdfs/BCA-155/question-papers/Unit_Test_Set_B.pdf", date: "Jun 18, 2026" }
