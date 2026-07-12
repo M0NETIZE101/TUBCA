@@ -10,15 +10,12 @@
  * 7.  Sort — Latest First / Oldest First toggle
  * 8.  Drag-and-drop upload zone
  * 9.  Progress bar animation (mock)
+ * 10. Notification System — Bell icon with dropdown
  * ============================================================
  */
 
 /* ============================================================
    1. SYLLABUS DATA
-   Each subject has: code, title, credits, type, semester.
-   "type" drives the card badge colour.
-   "thumb" is an optional image URL; if absent a gradient
-   placeholder is shown instead.
    ============================================================ */
 const SYLLABUS = {
   1: {
@@ -78,14 +75,12 @@ const SYLLABUS = {
   },
   6: {
     label: "Year 3 — Semester VI",
-    subjects: [] /* No data yet — will show empty state */
+    subjects: []
   }
 };
 
 /* ============================================================
    2. CARD RENDERER
-   Builds subject card HTML from a subject data object.
-   Called by renderSemester() for each subject in the array.
    ============================================================ */
 
 /** Maps resource type string → CSS badge modifier class */
@@ -110,37 +105,14 @@ const TYPE_ICON = {
  * @param {Object} subject — one entry from SYLLABUS[n].subjects
  * @returns {string} HTML string
  */
-/**
- * buildCardHTML — Returns the HTML string for one resource card.
- * Now supports custom subject images from your GitHub images folder.
- * @param {Object} subject — one entry from SYLLABUS[n].subjects
- * @returns {string} HTML string
- */
 function buildCardHTML(subject) {
   const badgeClass = TYPE_BADGE_CLASS[subject.type] || "badge-default";
   const icon       = TYPE_ICON[subject.type] || TYPE_ICON["default"];
 
-  /* ── IMAGE LOGIC ──
-     1. Check if custom image exists for this subject code
-     2. If yes, use it
-     3. If no, use fallback image
-  */
-  const subjectCode = subject.code;
-  const customImagePath = `images/subjects/${subjectCode}-cover.jpg`;
-  const fallbackImagePath = `images/subjects/default-cover.jpg`;
+  // Custom image path
+  const customImagePath = `images/subjects/${subject.code}-cover.jpg`;
   
-  // You can also set specific fallbacks per subject type
-  const typeFallbacks = {
-    "Notes": "images/subjects/default-notes.jpg",
-    "Exam Paper": "images/subjects/default-exam.jpg",
-    "Lab Manual": "images/subjects/default-lab.jpg",
-  };
-
-  // Determine which image to use
-  // We'll try custom image first, then type-specific fallback, then general fallback
-  const imagePath = customImagePath; // We'll handle 404 in the img onerror
-
-  /* Thumbnail: custom image if available, fallback otherwise */
+  // Fallback: use placeholder instead of images
   const thumbHTML = `
     <img
       src="${customImagePath}"
@@ -188,9 +160,7 @@ function buildCardHTML(subject) {
 
       <div class="card-footer">
         <span class="card-date text-label-sm">Uploaded: ${subject.date}</span>
-        <button class="btn-icon-round" aria-label="Download ${subject.title}">
-          <span class="material-symbols-outlined" aria-hidden="true">download</span>
-        </button>
+        <!-- Removed download button - it was just a decorative icon -->
       </div>
     </article>`;
 }
@@ -198,16 +168,9 @@ function buildCardHTML(subject) {
 
 /* ============================================================
    3. SEMESTER FILTER + PAGE TITLE UPDATER
-   Called whenever a sidebar nav-link is clicked.
-   Clears the grid, renders new cards, updates the heading.
    ============================================================ */
-let activeSemester = 1; /* default on page load */
+let activeSemester = 1;
 
-/**
- * renderSemester — Clears the grid and fills it with cards
- * for the chosen semester number (1–6).
- * @param {number} semNum
- */
 function renderSemester(semNum) {
   activeSemester = semNum;
   const sem    = SYLLABUS[semNum];
@@ -215,17 +178,14 @@ function renderSemester(semNum) {
   const heading = document.getElementById("page-heading");
   const subhead  = document.getElementById("page-subheading");
 
-  /* Update page title to reflect chosen semester */
   if (heading) heading.textContent = `${sem.label} — Subjects`;
   if (subhead)  subhead.textContent = sem.subjects.length
     ? `${sem.subjects.length} subjects · click any card to access materials.`
     : "No materials uploaded yet for this semester.";
 
-  /* Re-render cards */
   if (!grid) return;
 
   if (!sem.subjects.length) {
-    /* Empty state */
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1" role="status">
         <span class="material-symbols-outlined" aria-hidden="true">library_books</span>
@@ -242,29 +202,24 @@ function renderSemester(semNum) {
 /* ============================================================
    MAIN — runs after DOM is ready
    ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function() {
 
   /* ── 3b. SIDEBAR NAV CLICKS ─────────────────────────────── */
   const navLinks = document.querySelectorAll("aside .nav-link[data-semester]");
 
-  navLinks.forEach(link => {
-    link.addEventListener("click", function (e) {
+  navLinks.forEach(function(link) {
+    link.addEventListener("click", function(e) {
       e.preventDefault();
-
-      /* Visual active state */
-      navLinks.forEach(l => l.classList.remove("active"));
+      navLinks.forEach(function(l) { l.classList.remove("active"); });
       this.classList.add("active");
 
-      /* Render the clicked semester */
       const sem = parseInt(this.dataset.semester, 10);
       renderSemester(sem);
 
-      /* Close drawer on mobile after selection */
       if (window.innerWidth <= 768) closeSidebar();
     });
   });
 
-  /* Render default semester on load */
   renderSemester(1);
 
 
@@ -279,6 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.overflow = "hidden";
     sidebarToggle.setAttribute("aria-expanded", "true");
   }
+  
   function closeSidebar() {
     sidebar.classList.remove("is-open");
     sidebarOverlay.classList.remove("is-open");
@@ -286,24 +242,23 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebarToggle.setAttribute("aria-expanded", "false");
   }
 
-  if (sidebarToggle)  sidebarToggle.addEventListener("click", () =>
-    sidebar.classList.contains("is-open") ? closeSidebar() : openSidebar()
-  );
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener("click", function() {
+      sidebar.classList.contains("is-open") ? closeSidebar() : openSidebar();
+    });
+  }
   if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
 
-  /* ── 5. Upload modal removed — no modal elements in index.html ── */
-
-
-  /* ── 6. LIVE SEARCH ─────────────────────────────────────── */
+  /* ── 5. LIVE SEARCH ─────────────────────────────────────── */
   const searchInput = document.querySelector(".search-input");
   if (searchInput) {
-    searchInput.addEventListener("input", () => {
-      const query = searchInput.value.trim().toLowerCase();
+    searchInput.addEventListener("input", function() {
+      const query = this.value.trim().toLowerCase();
       const cards = document.querySelectorAll("#cards-grid .resource-card");
 
-      let visibleCount = 0;
-      cards.forEach(card => {
+      var visibleCount = 0;
+      cards.forEach(function(card) {
         const title = card.dataset.title || "";
         const code  = card.dataset.code?.toLowerCase() || "";
         const match = !query || title.includes(query) || code.includes(query);
@@ -311,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (match) visibleCount++;
       });
 
-      let noResult = document.getElementById("search-no-result");
+      var noResult = document.getElementById("search-no-result");
       if (!visibleCount && query) {
         if (!noResult) {
           noResult = document.createElement("div");
@@ -334,214 +289,200 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 
-  /* ── 7. SORT BUTTON ─────────────────────────────────────── */
+  /* ── 6. SORT BUTTON ─────────────────────────────────────── */
   const sortBtn = document.getElementById("sort-btn");
-  let sortAsc   = false;
+  var sortAsc = false;
 
   if (sortBtn) {
-    sortBtn.addEventListener("click", () => {
+    sortBtn.addEventListener("click", function() {
       sortAsc = !sortAsc;
-      sortBtn.innerHTML = `
+      this.innerHTML = `
         <span class="material-symbols-outlined" aria-hidden="true">sort</span>
         ${sortAsc ? "Oldest First" : "Latest First"}`;
 
       const grid  = document.getElementById("cards-grid");
       const cards = [...grid.querySelectorAll(".resource-card")];
 
-      /* Sort using data-date attribute set on each card by buildCardHTML.
-         Fallback to 0 if missing so invalid dates don't crash the sort. */
-      cards.sort((a, b) => {
+      cards.sort(function(a, b) {
         const dateA = new Date(a.dataset.date || 0);
         const dateB = new Date(b.dataset.date || 0);
         return sortAsc ? dateA - dateB : dateB - dateA;
       });
 
-      cards.forEach(c => grid.appendChild(c));
+      cards.forEach(function(c) { grid.appendChild(c); });
     });
   }
 
-}); /* end DOMContentLoaded */
-// ============================================================
-// NOTIFICATION SYSTEM - Bell Icon with Dropdown
-// ============================================================
 
-const GITHUB_USER = 'M0NETIZE101';
-const GITHUB_REPO = 'TUBCA';
-const BRANCH = 'main';
+  /* ── 7. NOTIFICATION SYSTEM ─────────────────────────────── */
+  // ─── Cached notices data to avoid multiple fetches ───
+  var cachedNotices = null;
+  var noticesFetched = false;
 
-// ── Load notices and update badge ──
-async function loadNotificationBadge() {
-  try {
-    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/notices.json`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      console.log('No notices file found');
-      return;
+  // ─── Load notices and update badge (only counts recent notices) ───
+  async function loadNotificationBadge() {
+    try {
+      const url = `https://raw.githubusercontent.com/M0NETIZE101/TUBCA/main/notices.json`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.log('No notices file found');
+        return;
+      }
+
+      const notices = await response.json();
+      cachedNotices = notices;
+      noticesFetched = true;
+
+      if (!notices || !notices.length) {
+        document.getElementById('notification-badge').classList.remove('visible');
+        return;
+      }
+
+      // ─── FIXED: Only count notices from the last 30 days ───
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
+
+      // Count notices that are recent AND unread
+      const unreadCount = notices.filter(function(n) {
+        const noticeDate = new Date(n.date).getTime();
+        const isRecent = noticeDate > thirtyDaysAgo;
+        const isUnread = !readIds.includes(n.id);
+        return isRecent && isUnread;
+      }).length;
+
+      const badge = document.getElementById('notification-badge');
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+        badge.classList.add('visible');
+      } else {
+        badge.classList.remove('visible');
+      }
+    } catch (error) {
+      console.log('Could not load notices:', error);
     }
-
-    const notices = await response.json();
-    
-    if (!notices || !notices.length) {
-      document.getElementById('notification-badge').classList.remove('visible');
-      return;
-    }
-
-    // Check which notices have been read (stored in localStorage)
-    const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
-    const unreadCount = notices.filter(n => !readIds.includes(n.id)).length;
-
-    const badge = document.getElementById('notification-badge');
-    if (unreadCount > 0) {
-      badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-      badge.classList.add('visible');
-    } else {
-      badge.classList.remove('visible');
-    }
-  } catch (error) {
-    console.log('Could not load notices:', error);
   }
-}
 
-// ── Load notices into dropdown ──
-async function loadNoticesIntoDropdown() {
-  const list = document.getElementById('notification-list');
-  if (!list) return;
+  // ─── Load notices into dropdown ───
+  async function loadNoticesIntoDropdown() {
+    const list = document.getElementById('notification-list');
+    if (!list) return;
 
-  try {
-    const url = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/notices.json`;
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-      list.innerHTML = `
-        <div class="notification-empty">
-          <span class="material-symbols-outlined">notifications_off</span>
-          <div>No notices available</div>
-        </div>`;
-      return;
+    // Use cached notices if available
+    var notices = cachedNotices;
+
+    if (!notices) {
+      try {
+        const url = `https://raw.githubusercontent.com/M0NETIZE101/TUBCA/main/notices.json`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          list.innerHTML = '<div class="notification-empty"><span class="material-symbols-outlined">notifications_off</span><div>No notices available</div></div>';
+          return;
+        }
+        notices = await response.json();
+        cachedNotices = notices;
+        noticesFetched = true;
+      } catch (error) {
+        list.innerHTML = '<div class="notification-empty"><span class="material-symbols-outlined">error_outline</span><div>Could not load notices</div></div>';
+        return;
+      }
     }
 
-    const notices = await response.json();
-    
     if (!notices || !notices.length) {
-      list.innerHTML = `
-        <div class="notification-empty">
-          <span class="material-symbols-outlined">notifications_off</span>
-          <div>No notices yet 📢</div>
-        </div>`;
+      list.innerHTML = '<div class="notification-empty"><span class="material-symbols-outlined">notifications_off</span><div>No notices yet 📢</div></div>';
       return;
     }
 
     // Sort newest first, limit to 5
-    const sorted = [...notices].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const sorted = [...notices].sort(function(a, b) {
+      return new Date(b.date) - new Date(a.date);
+    });
     const latest = sorted.slice(0, 5);
 
     // Get read IDs from localStorage
     const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
 
-    list.innerHTML = latest.map(notice => {
+    list.innerHTML = latest.map(function(notice) {
       const typeClass = notice.type || 'general';
       const date = new Date(notice.date);
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       const isUnread = !readIds.includes(notice.id);
-      
-      return `
-        <div class="notification-item ${isUnread ? 'unread' : ''}" data-id="${notice.id}" onclick="window.location.href='notices.html'">
-          <div class="ntitle">
-            ${escapeHtml(notice.title)}
-            <span class="ntype ${typeClass}">${typeClass}</span>
-          </div>
-          <div class="ndate">${dateStr} · ${escapeHtml(notice.author || 'Admin')}</div>
-          <div class="ncontent">${escapeHtml(notice.content.substring(0, 120))}${notice.content.length > 120 ? '...' : ''}</div>
-        </div>
-      `;
+
+      return '<div class="notification-item ' + (isUnread ? 'unread' : '') + '" data-id="' + notice.id + '" onclick="window.location.href=\'notices.html\'">' +
+        '<div class="ntitle">' + escapeHtml(notice.title) + ' <span class="ntype ' + typeClass + '">' + typeClass + '</span></div>' +
+        '<div class="ndate">' + dateStr + ' · ' + escapeHtml(notice.author || 'Admin') + '</div>' +
+        '<div class="ncontent">' + escapeHtml(notice.content.substring(0, 120)) + (notice.content.length > 120 ? '...' : '') + '</div>' +
+        '</div>';
     }).join('');
 
-    // Mark all as read when dropdown opens
-    // (User sees them, so they're "read")
-    const allIds = latest.map(n => n.id);
-    const newReadIds = [...new Set([...readIds, ...allIds])];
-    localStorage.setItem('read_notice_ids', JSON.stringify(newReadIds));
-    
-    // Update badge
-    await loadNotificationBadge();
-
-  } catch (error) {
-    list.innerHTML = `
-      <div class="notification-empty">
-        <span class="material-symbols-outlined">error_outline</span>
-        <div>Could not load notices</div>
-      </div>`;
-    console.error('Error loading notices:', error);
+    // ─── FIXED: Do NOT auto-mark as read when dropdown opens ───
+    // Users must click "Mark all as read" to mark notices as read
   }
-}
 
-// ── Escape HTML for safety ──
-function escapeHtml(str) {
-  if (!str) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-// ── Toggle dropdown ──
-function toggleNotificationDropdown() {
-  const dropdown = document.getElementById('notification-dropdown');
-  if (!dropdown) return;
-
-  const isOpen = dropdown.classList.contains('open');
-  dropdown.classList.toggle('open');
-  
-  if (!isOpen) {
-    // Load notices when opening
-    loadNoticesIntoDropdown();
+  // ─── Escape HTML for safety ───
+  function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
   }
-}
 
-// ── Mark all as read ──
-function markAllAsRead() {
-  const items = document.querySelectorAll('#notification-list .notification-item');
-  const ids = [];
-  items.forEach(item => {
-    const id = item.dataset.id;
-    if (id) ids.push(parseInt(id));
-    item.classList.remove('unread');
+  // ─── Toggle dropdown ───
+  function toggleNotificationDropdown() {
+    var dropdown = document.getElementById('notification-dropdown');
+    if (!dropdown) return;
+
+    var isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open');
+
+    if (!isOpen) {
+      loadNoticesIntoDropdown();
+    }
+  }
+
+  // ─── Mark all as read ───
+  function markAllAsRead() {
+    var items = document.querySelectorAll('#notification-list .notification-item');
+    var ids = [];
+    items.forEach(function(item) {
+      var id = item.dataset.id;
+      if (id) ids.push(parseInt(id));
+      item.classList.remove('unread');
+    });
+
+    if (ids.length) {
+      var readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
+      var newReadIds = [...new Set([...readIds, ...ids])];
+      localStorage.setItem('read_notice_ids', JSON.stringify(newReadIds));
+      loadNotificationBadge();
+    }
+  }
+
+  // ─── Click outside to close dropdown ───
+  document.addEventListener('click', function(e) {
+    var wrapper = document.querySelector('.notification-wrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+      var dropdown = document.getElementById('notification-dropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }
   });
-  
-  if (ids.length) {
-    const readIds = JSON.parse(localStorage.getItem('read_notice_ids') || '[]');
-    const newReadIds = [...new Set([...readIds, ...ids])];
-    localStorage.setItem('read_notice_ids', JSON.stringify(newReadIds));
-    loadNotificationBadge();
-  }
-}
 
-// ── Click outside to close dropdown ──
-document.addEventListener('click', function(e) {
-  const wrapper = document.querySelector('.notification-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) {
-    const dropdown = document.getElementById('notification-dropdown');
-    if (dropdown) dropdown.classList.remove('open');
-  }
-});
-
-// ── Initialize notifications when DOM is ready ──
-document.addEventListener('DOMContentLoaded', function() {
-  // Load badge count
+  // ─── Initialize notifications ───
   loadNotificationBadge();
-  
+
   // Click on notification button
-  const btn = document.getElementById('notification-btn');
+  var btn = document.getElementById('notification-btn');
   if (btn) {
     btn.addEventListener('click', toggleNotificationDropdown);
   }
-  
+
   // Mark all as read button
-  const markReadBtn = document.getElementById('mark-read-btn');
+  var markReadBtn = document.getElementById('mark-read-btn');
   if (markReadBtn) {
     markReadBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       markAllAsRead();
     });
   }
-});
+
+}); /* end DOMContentLoaded */
