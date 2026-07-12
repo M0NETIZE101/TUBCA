@@ -379,14 +379,14 @@
   // ============================================================
   // CONFIGURATION - YOUR GITHUB INFO
   // ============================================================
-  const CONFIG = {
+  var CONFIG = {
     GITHUB_USER: 'M0NETIZE101',
     GITHUB_REPO: 'TUBCA',
     BRANCH: 'main'
   };
 
   // Full subject list
-  const SUBJECTS = [
+  var SUBJECTS = [
     "BCA-101","BCA-102","BCA-103","BCA-104","BCA-105","BCA-106",
     "BCA-151","BCA-152","BCA-153","BCA-154","BCA-155","BCA-156",
     "BCA-201","BCA-202","BCA-203","BCA-204","BCA-205","BCA-206",
@@ -395,12 +395,12 @@
   ];
 
   // ─── PASSWORD PROTECTION with sessionStorage ───
-  const ADMIN_PASSWORD = 'bcadmin2026';
-  const passwordOverlay = document.getElementById('password-overlay');
-  const mainContent = document.getElementById('main-content');
-  const passwordInput = document.getElementById('admin-password');
-  const unlockBtn = document.getElementById('unlock-btn');
-  const passwordError = document.getElementById('password-error');
+  var ADMIN_PASSWORD = 'bcadmin2026';
+  var passwordOverlay = document.getElementById('password-overlay');
+  var mainContent = document.getElementById('main-content');
+  var passwordInput = document.getElementById('admin-password');
+  var unlockBtn = document.getElementById('unlock-btn');
+  var passwordError = document.getElementById('password-error');
 
   if (sessionStorage.getItem('admin_authenticated') === 'true') {
     passwordOverlay.style.display = 'none';
@@ -409,7 +409,7 @@
   }
 
   function checkPassword() {
-    const entered = passwordInput.value.trim();
+    var entered = passwordInput.value.trim();
     if (entered === ADMIN_PASSWORD) {
       sessionStorage.setItem('admin_authenticated', 'true');
       passwordOverlay.style.display = 'none';
@@ -434,7 +434,6 @@
       return atob(clean);
     } catch (e) {
       console.error('Failed to decode base64:', e);
-      // Return a valid empty FILES object as fallback
       return 'const FILES = {};';
     }
   }
@@ -607,7 +606,7 @@
       statusMsgDiv.textContent = msg;
       statusMsgDiv.className = 'status-msg ' + type;
       setTimeout(function() {
-        if (statusMsgDiv.className.includes(type)) hideStatus();
+        if (statusMsgDiv.className.indexOf(type) !== -1) hideStatus();
       }, 6000);
       statusMsgDiv.style.display = 'block';
     }
@@ -616,7 +615,7 @@
       statusMsgDiv.className = 'status-msg';
     }
 
-    // ─── THE FIXED UPDATE FILES.JS ───
+    // ─── BULLETPROOF UPDATE FILES.JS ───
     async function updateFilesJS(subject, type, newEntry, customTitle, token, existingContent, existingSha) {
       var filePath = 'js/files.js';
       var url = 'https://api.github.com/repos/' + CONFIG.GITHUB_USER + '/' + CONFIG.GITHUB_REPO + '/contents/' + filePath;
@@ -634,7 +633,6 @@
             sha = data.sha;
             currentContent = safeBase64Decode(data.content);
           } else {
-            // files.js doesn't exist or is corrupted - create from template
             currentContent = generateEmptyFilesJS();
           }
         } catch (err) {
@@ -642,20 +640,18 @@
         }
       }
 
-      // ─── SIMPLE RELIABLE PARSER ───
+      // ─── FIND OR CREATE SUBJECT ───
       var lines = currentContent.split('\n');
-      var subjectFound = false;
-      var typeFound = false;
-      var subjectStartLine = -1;
-      var subjectEndLine = -1;
-      var typeStartLine = -1;
-      var typeEndLine = -1;
+      var subjectStart = -1;
+      var subjectEnd = -1;
+      var typeStart = -1;
+      var typeEnd = -1;
       var braceDepth = 0;
       var inSubject = false;
       var inTypeArray = false;
-      var updatedContent = '';
+      var subjectFound = false;
+      var typeFound = false;
 
-      // Find the subject
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i];
         var trimmed = line.trim();
@@ -663,46 +659,41 @@
         if (!inSubject && trimmed.indexOf('"' + subject + '"') === 0) {
           subjectFound = true;
           inSubject = true;
-          subjectStartLine = i;
-          var braceIndex = line.indexOf('{');
-          if (braceIndex !== -1) {
-            var openBraces = (line.match(/{/g) || []).length;
-            var closeBraces = (line.match(/}/g) || []).length;
-            braceDepth = openBraces - closeBraces;
-          } else {
-            braceDepth = 0;
-          }
+          subjectStart = i;
+          var braceIdx = line.indexOf('{');
+          braceDepth = braceIdx !== -1 ? 1 : 0;
           continue;
         }
 
         if (inSubject) {
-          var openBraces = (line.match(/{/g) || []).length;
-          var closeBraces = (line.match(/}/g) || []).length;
-          braceDepth += openBraces - closeBraces;
+          var openCount = (line.match(/{/g) || []).length;
+          var closeCount = (line.match(/}/g) || []).length;
+          braceDepth += openCount - closeCount;
 
           if (trimmed.indexOf(type + ':') === 0 || trimmed.indexOf('"' + type + '":') === 0) {
             typeFound = true;
-            typeStartLine = i;
+            typeStart = i;
             inTypeArray = true;
           }
 
-          if (inTypeArray) {
-            if (trimmed.indexOf(']') !== -1 && trimmed.indexOf('[') === -1) {
-              typeEndLine = i;
-              inTypeArray = false;
-            }
+          if (inTypeArray && trimmed.indexOf(']') !== -1) {
+            typeEnd = i;
+            inTypeArray = false;
           }
 
           if (braceDepth === 0) {
-            subjectEndLine = i;
+            subjectEnd = i;
             inSubject = false;
             break;
           }
         }
       }
 
+      // ─── BUILD UPDATED CONTENT ───
+      var updatedContent = '';
+
       if (!subjectFound) {
-        // Subject doesn't exist - create it
+        // Create new subject
         var newSubject = '\n  "' + subject + '": {\n    notes: [],\n    "question-papers": [],\n    "lab-reports": [],\n    assignments: [],\n    ' + type + ': [' + newEntry + ']\n  },';
         var insertIndex = lines.length - 1;
         for (var j = lines.length - 1; j >= 0; j--) {
@@ -711,102 +702,89 @@
             break;
           }
         }
-        var updatedLines = [];
+        var newLines = [];
         for (var k = 0; k < lines.length; k++) {
-          if (k === insertIndex) updatedLines.push(newSubject);
-          updatedLines.push(lines[k]);
+          if (k === insertIndex) newLines.push(newSubject);
+          newLines.push(lines[k]);
         }
-        updatedContent = updatedLines.join('\n');
+        updatedContent = newLines.join('\n');
       } else if (!typeFound) {
-        // Type doesn't exist - add it
-        var insertLine = subjectEndLine - 1;
-        while (insertLine > subjectStartLine && lines[insertLine].trim() === '') {
-          insertLine--;
-        }
+        // Add new type to existing subject
         var newTypeLine = '    ' + type + ': [' + newEntry + ']';
-        var updatedLines = [];
+        var insertIdx = subjectEnd - 1;
+        while (insertIdx > subjectStart && lines[insertIdx].trim() === '') insertIdx--;
+        var newLines = [];
         for (var m = 0; m < lines.length; m++) {
-          if (m === insertLine + 1) updatedLines.push(newTypeLine);
-          updatedLines.push(lines[m]);
+          if (m === insertIdx + 1) newLines.push(newTypeLine);
+          newLines.push(lines[m]);
         }
-        updatedContent = updatedLines.join('\n');
+        updatedContent = newLines.join('\n');
       } else {
-        // Type exists - append to the array
-        var arrayStart = -1;
-        var arrayEnd = -1;
-        var bracketDepth = 0;
-        for (var n = typeStartLine; n <= typeEndLine && n < lines.length; n++) {
-          var line = lines[n];
-          if (line.indexOf('[') !== -1) bracketDepth++;
-          if (line.indexOf(']') !== -1) {
-            bracketDepth--;
-            if (bracketDepth === 0) {
-              arrayEnd = n;
-              break;
-            }
+        // ─── CRITICAL FIX: Clean insertion without syntax errors ───
+        var arrayStartLine = typeStart;
+        var arrayEndLine = typeEnd;
+
+        for (var n = typeStart; n <= typeEnd && n < lines.length; n++) {
+          if (lines[n].indexOf('[') !== -1) {
+            arrayStartLine = n;
+            break;
           }
         }
 
-        if (arrayEnd !== -1) {
-          var arrayContent = '';
-          for (var p = typeStartLine; p <= arrayEnd; p++) {
-            arrayContent += lines[p] + '\n';
+        // Find if array has content
+        var hasContent = false;
+        for (var p = typeStart; p <= typeEnd && p < lines.length; p++) {
+          if (lines[p].indexOf('{') !== -1) {
+            hasContent = true;
+            break;
           }
-          var hasContent = arrayContent.indexOf('{') !== -1;
+        }
 
-          if (hasContent) {
-            var updatedLines = [];
-            var insertIndex = arrayEnd;
-            while (insertIndex > typeStartLine && lines[insertIndex].trim() === '') {
-              insertIndex--;
-            }
-            var lastLine = lines[insertIndex];
-            if (!lastLine.trim().endsWith(',') && !lastLine.trim().endsWith('[')) {
-              lines[insertIndex] = lastLine + ',';
-            }
-            var newEntryFormatted = '\n      ' + newEntry;
-            for (var q = 0; q < lines.length; q++) {
-              if (q === insertIndex + 1) updatedLines.push(newEntryFormatted);
-              updatedLines.push(lines[q]);
-            }
-            updatedContent = updatedLines.join('\n');
-          } else {
-            // Empty array
-            var updatedLines = [];
-            var openBracketLine = typeStartLine;
-            for (var r = typeStartLine; r <= arrayEnd; r++) {
-              if (lines[r].indexOf('[') !== -1) {
-                openBracketLine = r;
-                break;
-              }
-            }
-            var bracketLine = lines[openBracketLine];
-            var indent = bracketLine.match(/^\s*/)[0];
-            var newArrayLines = [
-              bracketLine.replace('[', '[' + newEntry),
-              indent + '  ]'
-            ];
-            for (var s = 0; s < lines.length; s++) {
-              if (s === openBracketLine) {
-                updatedLines.push(newArrayLines[0]);
-              } else if (s === arrayEnd) {
-                updatedLines.push(newArrayLines[1]);
-              } else if (s > openBracketLine && s < arrayEnd) {
-                // Skip old array content
+        var newLines = [];
+        var entryFormatted = '\n      ' + newEntry;
+
+        if (hasContent) {
+          // ─── Add entry with proper comma handling ───
+          for (var q = 0; q < lines.length; q++) {
+            if (q === typeEnd) {
+              // Check if the last content line already has a comma
+              var lastContentLine = lines[typeEnd - 1].trim();
+              if (!lastContentLine.endsWith(',') && !lastContentLine.endsWith('[')) {
+                // Add comma to the line before closing bracket
+                var prevLine = lines[typeEnd - 1];
+                if (!prevLine.trim().endsWith(',')) {
+                  newLines.push(prevLine + ',');
+                } else {
+                  newLines.push(prevLine);
+                }
               } else {
-                updatedLines.push(lines[s]);
+                newLines.push(lines[typeEnd - 1]);
               }
+              newLines.push(entryFormatted);
+              newLines.push(lines[typeEnd]);
+              q = typeEnd;
+            } else if (q !== typeEnd - 1) {
+              newLines.push(lines[q]);
             }
-            updatedContent = updatedLines.join('\n');
           }
         } else {
-          // Fallback
-          var typeRegex = new RegExp('(' + type + '\\s*:\\s*\\[)\\s*\\]', 's');
-          updatedContent = currentContent.replace(typeRegex, '$1' + newEntry + '\n    ]');
+          // ─── Empty array - clean insertion ───
+          for (var r = 0; r < lines.length; r++) {
+            if (r === arrayStartLine) {
+              var indent = lines[r].match(/^\s*/)[0];
+              newLines.push(indent + '[');
+              newLines.push(indent + '  ' + newEntry);
+              newLines.push(indent + ']');
+              r = arrayEndLine;
+            } else {
+              newLines.push(lines[r]);
+            }
+          }
         }
+        updatedContent = newLines.join('\n');
       }
 
-      // Upload updated files.js
+      // ─── UPLOAD ───
       var updatedBase64 = btoa(unescape(encodeURIComponent(updatedContent)));
       var payload = {
         message: 'Auto-update files.js: added "' + customTitle + '" to ' + subject + '/' + type,
@@ -820,6 +798,7 @@
         headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
       if (!response.ok) {
         var errData = await response.json();
         throw new Error('files.js update failed: ' + errData.message);
