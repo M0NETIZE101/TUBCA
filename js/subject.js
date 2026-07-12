@@ -1,5 +1,11 @@
 /* BCA PORTAL — subject.js (CLEAN VERSION - No Security Features) */
 
+// ─── Check if FILES exists before using it ───
+if (typeof FILES === 'undefined') {
+  console.error('FILES is not defined - make sure files.js is loaded');
+  window.FILES = {};
+}
+
 const SYLLABUS = {
   1:{ subjects:[
     {code:"BCA-101",title:"Computer Fundamentals and Applications",credits:3,type:"Notes"},
@@ -68,7 +74,7 @@ if(subject){
   document.getElementById('subject-title').textContent='Subject Not Found';
 }
 
-// ─── FIXED: Use hyphenated names to match files.js ───
+// ─── Using hyphenated names to match files.js ───
 const TAB_ICONS = {
   notes: 'menu_book',
   'question-papers': 'assignment',
@@ -89,7 +95,7 @@ if (typeof FILES === 'undefined') {
   document.getElementById('subject-title').textContent = 'Error: Data not loaded';
 }
 
-// ─── FIXED: Use hyphenated names ───
+// ─── Using hyphenated names ───
 const subjectFiles = (subCode && FILES && FILES[subCode]) || {
   notes: [],
   'question-papers': [],
@@ -97,12 +103,11 @@ const subjectFiles = (subCode && FILES && FILES[subCode]) || {
   assignments: []
 };
 
-// ─── FIXED: renderFileList with null check ───
+// ─── renderFileList with null check ───
 function renderFileList(tabKey){
   const files = subjectFiles[tabKey] || [];
   const listEl = document.getElementById('list-' + tabKey);
   
-  // ─── FIXED: Check if element exists ───
   if (!listEl) {
     console.warn('Element not found: list-' + tabKey);
     return;
@@ -136,7 +141,7 @@ function renderFileList(tabKey){
   });
 }
 
-// ─── FIXED: Use hyphenated names ───
+// ─── Using hyphenated names ───
 ['notes', 'question-papers', 'lab-reports', 'assignments'].forEach(renderFileList);
 
 document.querySelectorAll('.tab-btn').forEach(btn=>{
@@ -162,7 +167,6 @@ function openFile(tabKey,index){
     viewerSection.scrollIntoView({behavior:'smooth',block:'start'});
   }
 
-  // Set download button href
   const downloadBtn = document.getElementById('download-btn');
   if (downloadBtn) {
     downloadBtn.href = file.file;
@@ -175,7 +179,6 @@ function openFile(tabKey,index){
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ─── FIXED: Move all declarations to the top ───
 let pdfDoc = null;
 let totalPages = 1;
 let zoomScale = 'auto';
@@ -262,7 +265,6 @@ function loadPDF(url){
   loadingEl.style.display='flex';
   noPdfEl.style.display='none';
 
-  // Update download button
   if (downloadBtn) {
     downloadBtn.href = url;
   }
@@ -289,7 +291,6 @@ function loadPDF(url){
     });
 }
 
-// ─── FIXED: Check if scrollWrap exists before adding listener ───
 if (scrollWrap) {
   scrollWrap.addEventListener('scroll', ()=>{
     if(!pdfDoc) return;
@@ -312,9 +313,8 @@ function scrollToPage(num){
   }
 }
 
-// ─── FIXED: Check if elements exist before adding listeners ───
 const prevBtn = document.getElementById('prev-page');
-const nextBtn = document.getElementById('next-page');
+const nextBtn = document.getElementById('next-btn');
 
 if (prevBtn) {
   prevBtn.addEventListener('click', ()=>{
