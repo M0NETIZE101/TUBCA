@@ -67,6 +67,9 @@ const FILES = {
       { title: "Lab Report 2 and Assignment", file: "pdfs/BCA-153/lab-reports/LAB-2.pdf", date: "Jun 27, 2026" }, 
       { title: "OOP IN JAVA(LAB 2) Solution", file: "pdfs/BCA-153/lab-reports/OOP_IN_JAVA_LAB_2_-Solution.pdf", date: "Jul 12, 2026" }
     ],
+
+      
+      { title: "LAB 3(Object and Class)", file: "pdfs/BCA-153/lab-reports/LAB-3.pdf", date: "Jul 12, 2026" }
     assignments: [
       { title: "Java ko assignments", file: "pdfs/BCA-153/assignments/20260607_211242.pdf", date: "Jun 7, 2026" }
     ]
