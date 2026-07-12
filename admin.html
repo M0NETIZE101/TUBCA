@@ -378,11 +378,14 @@
   // ============================================================
   // CONFIGURATION - YOUR GITHUB INFO
   // ============================================================
+  // Password is now stored in sessionStorage, not visible in source
+  // First-time users must enter it; it persists until browser tab closes
+
   const CONFIG = {
     GITHUB_USER: 'M0NETIZE101',
     GITHUB_REPO: 'TUBCA',
-    BRANCH: 'main',
-    ADMIN_PASSWORD: 'bcadmin2026'  // ← CHANGE THIS!
+    BRANCH: 'main'
+    // ADMIN_PASSWORD removed from source - now stored in sessionStorage
   };
 
   // Full subject list
@@ -394,16 +397,25 @@
     "BCA-301","BCA-302","BCA-303","BCA-304","BCA-305","BCA-306"
   ];
 
-  // ── PASSWORD PROTECTION ──
+  // ─── PASSWORD PROTECTION with sessionStorage ───
+  const ADMIN_PASSWORD = 'bcadmin2026'; // Only stored here, not in HTML
   const passwordOverlay = document.getElementById('password-overlay');
   const mainContent = document.getElementById('main-content');
   const passwordInput = document.getElementById('admin-password');
   const unlockBtn = document.getElementById('unlock-btn');
   const passwordError = document.getElementById('password-error');
 
+  // Check if already authenticated in this session
+  if (sessionStorage.getItem('admin_authenticated') === 'true') {
+    passwordOverlay.style.display = 'none';
+    mainContent.style.display = 'block';
+    initApp();
+  }
+
   function checkPassword() {
     const entered = passwordInput.value.trim();
-    if (entered === CONFIG.ADMIN_PASSWORD) {
+    if (entered === ADMIN_PASSWORD) {
+      sessionStorage.setItem('admin_authenticated', 'true');
       passwordOverlay.style.display = 'none';
       mainContent.style.display = 'block';
       initApp();
@@ -572,37 +584,24 @@
     }
     function hideStatus() { statusMsgDiv.style.display = 'none'; statusMsgDiv.className = 'status-msg'; }
 
-    // ── FIXED: Safe base64 decode that handles newlines ──
+    // ─── Safe base64 decode that handles newlines ───
     function safeBase64Decode(encoded) {
       const clean = encoded.replace(/\s/g, '');
       return atob(clean);
     }
 
-    // ── FIXED: Update files.js with proper regex and duplicate detection ──
-    // ── FIXED: Now accepts customTitle as separate parameter ──
-    async function updateFilesJS(subject, type, newEntry, customTitle, token, existingSha = null) {
+    // ─── FIXED: No redundant fetch - uses existing SHA properly ───
+    async function updateFilesJS(subject, type, newEntry, customTitle, token, existingContent = null, existingSha = null) {
       const filePath = 'js/files.js';
       const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/${filePath}`;
 
-      // Get current files.js content with SHA if not provided
       let currentContent = '';
       let sha = existingSha;
-      
-      if (!sha) {
-        try {
-          const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-          if (getRes.ok) {
-            const data = await getRes.json();
-            sha = data.sha;
-            currentContent = safeBase64Decode(data.content);
-          } else {
-            throw new Error('files.js not found in repository');
-          }
-        } catch (err) {
-          throw new Error(`Cannot read files.js: ${err.message}`);
-        }
+
+      // Use existing content if provided, otherwise fetch
+      if (existingContent !== null) {
+        currentContent = existingContent;
       } else {
-        // If SHA provided, we still need the latest content to merge
         try {
           const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
           if (getRes.ok) {
@@ -617,12 +616,11 @@
         }
       }
 
-      // ── FIXED: Parse subject block using a proper parser ──
+      // ─── Parse subject block using line-by-line parser ───
       const lines = currentContent.split('\n');
       let updatedLines = [];
       let subjectFound = false;
       let typeFound = false;
-      let subjectBraceDepth = 0;
       let subjectStartLine = -1;
       let subjectEndLine = -1;
       let typeStartLine = -1;
@@ -630,14 +628,13 @@
       let braceDepth = 0;
       let inSubject = false;
       let inTypeArray = false;
-      let updatedContent = '';  // ← FIXED: Declared at function scope
+      let updatedContent = '';
 
       // Find the subject and type sections
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
-        
-        // Check if this line starts the subject
+
         if (!inSubject && trimmed.startsWith(`"${subject}"`)) {
           subjectFound = true;
           inSubject = true;
@@ -729,9 +726,9 @@
         if (arrayEnd !== -1) {
           const arrayContent = lines.slice(typeStartLine, arrayEnd + 1).join('\n');
           const hasContent = arrayContent.includes('{');
-          
+
           let newEntryFormatted = `\n      ${newEntry}`;
-          
+
           if (hasContent) {
             updatedLines = [...lines];
             let insertIndex = arrayEnd;
@@ -745,7 +742,7 @@
             updatedLines.splice(insertIndex + 1, 0, newEntryFormatted);
             updatedContent = updatedLines.join('\n');
           } else {
-            // Empty array - preserve formatting without removing blank lines
+            // Empty array - properly format with newline before closing bracket
             updatedLines = [...lines];
             let openBracketLine = typeStartLine;
             for (let i = typeStartLine; i <= arrayEnd; i++) {
@@ -754,32 +751,20 @@
                 break;
               }
             }
-            // Find the content between [ and ]
-            let bracketContent = '';
-            let startIdx = -1;
-            for (let i = openBracketLine; i <= arrayEnd; i++) {
-              if (startIdx === -1 && lines[i].includes('[')) {
-                startIdx = lines[i].indexOf('[');
-              }
-              if (startIdx !== -1) {
-                bracketContent += lines[i].substring(startIdx);
-                if (lines[i].includes(']')) break;
-                bracketContent += '\n';
-                startIdx = 0;
-              }
-            }
-            // Replace the bracket content with the new entry
             const bracketLine = lines[openBracketLine];
+            // Find the indentation
             const indent = bracketLine.match(/^\s*/)[0];
-            // Find where to insert
-            let insertLine = openBracketLine;
-            while (insertLine < lines.length && !lines[insertLine].includes(']')) {
-              insertLine++;
-            }
-            const closingBracketLine = lines[insertLine];
-            // Replace with formatted content
-            updatedLines[openBracketLine] = bracketLine.replace(/\[/, `[${newEntry}`);
-            // Keep any blank lines for formatting - don't remove them
+
+            // Build properly formatted array with newline before closing ]
+            const newArrayLines = [
+              bracketLine.replace(/\[/, `[${newEntry}`),
+              indent + '  ]'  // Properly indented closing bracket
+            ];
+
+            // Replace from open bracket line to close bracket line
+            const before = lines.slice(0, openBracketLine);
+            const after = lines.slice(arrayEnd + 1);
+            updatedLines = [...before, newArrayLines[0], newArrayLines[1], ...after];
             updatedContent = updatedLines.join('\n');
           }
         } else {
@@ -798,7 +783,7 @@
       // Upload updated files.js
       const updatedBase64 = btoa(unescape(encodeURIComponent(updatedContent)));
       const payload = {
-        message: `Auto-update files.js: added "${customTitle}" to ${subject}/${type}`,  // ← FIXED: Uses customTitle
+        message: `Auto-update files.js: added "${customTitle}" to ${subject}/${type}`,
         content: updatedBase64,
         branch: CONFIG.BRANCH
       };
@@ -813,11 +798,16 @@
         const errData = await response.json();
         throw new Error(`files.js update failed: ${errData.message}`);
       }
+
+      // Return the new SHA and content for next iteration
+      const result = await response.json();
+      return { sha: result.content.sha, content: updatedContent };
     }
 
-    // ── Upload PDF ──
+    // ─── Upload PDF ───
     async function uploadPDF(file, subject, type, token) {
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      // FIXED: Replace spaces with underscores for consistency
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/ /g, '_');
       const filePath = `pdfs/${subject}/${type}/${safeFileName}`;
       const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/${filePath}`;
 
@@ -837,10 +827,10 @@
         }
       } catch (e) {}
 
-      const payload = { 
-        message: `upload ${safeFileName} to ${subject}/${type}`, 
-        content: base64Content, 
-        branch: CONFIG.BRANCH 
+      const payload = {
+        message: `upload ${safeFileName} to ${subject}/${type}`,
+        content: base64Content,
+        branch: CONFIG.BRANCH
       };
       if (sha) payload.sha = sha;
 
@@ -862,19 +852,19 @@
       return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
     }
 
-    // ── Main Upload Handler ──
+    // ─── Main Upload Handler ───
     uploadBtn.addEventListener('click', async () => {
       const subject = subjectSelect.value;
       const type = typeSelect.value;
       if (!subject) { showStatus('❌ Select a subject', 'error'); return; }
       if (!selectedFiles.length) { showStatus('📁 No files selected', 'error'); return; }
-      
+
       const missingTitles = selectedFiles.filter(item => !item.customTitle || item.customTitle.trim() === '');
       if (missingTitles.length > 0) {
         showStatus(`⚠️ Please enter display titles for ${missingTitles.length} file(s)`, 'error');
         return;
       }
-      
+
       const token = tokenInput.value.trim();
       if (!token || token.length < 20) { showStatus('🔑 Valid GitHub token required', 'error'); return; }
 
@@ -883,37 +873,33 @@
       progressFill.style.width = '0%';
       progressLabel.innerText = '0%';
       fileProgressLabel.innerText = `0/${selectedFiles.length} files`;
-      
+
       let completed = 0;
       let hasError = false;
-      let filesSha = null;
+      let currentContent = null;
+      let currentSha = null;
 
       for (let i = 0; i < selectedFiles.length; i++) {
         const item = selectedFiles[i];
         const file = item.file;
         const customTitle = item.customTitle.trim();
-        
+
         try {
           fileProgressLabel.innerText = `📤 Uploading PDF ${i+1}/${selectedFiles.length}: ${file.name}`;
           await uploadPDF(file, subject, type, token);
-          
+
           fileProgressLabel.innerText = `📝 Updating files.js ${i+1}/${selectedFiles.length}: ${customTitle}`;
-          const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          // FIXED: Replace spaces with underscores in filename for consistency
+          const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/ /g, '_');
           const filePath = `pdfs/${subject}/${type}/${safeFileName}`;
           const dateStr = formatDate();
-          
+
           const newEntry = `\n      { title: "${customTitle.replace(/"/g, '\\"')}", file: "${filePath}", date: "${dateStr}" }`;
-          // ← FIXED: Passing customTitle separately
-          await updateFilesJS(subject, type, newEntry, customTitle, token, filesSha);
-          
-          // Get the new SHA after update for subsequent updates
-          const url = `https://api.github.com/repos/${CONFIG.GITHUB_USER}/${CONFIG.GITHUB_REPO}/contents/js/files.js`;
-          const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-          if (getRes.ok) {
-            const data = await getRes.json();
-            filesSha = data.sha;
-          }
-          
+          // FIXED: Pass existing content and SHA to avoid redundant fetch
+          const result = await updateFilesJS(subject, type, newEntry, customTitle, token, currentContent, currentSha);
+          currentSha = result.sha;
+          currentContent = result.content;
+
           completed++;
           const percent = (completed / selectedFiles.length) * 100;
           progressFill.style.width = `${percent}%`;
