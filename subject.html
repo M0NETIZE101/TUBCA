@@ -9,10 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
-  
-  <!-- StPageFlip CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/page-flip.css" />
-  
   <style>
     .subject-header {
       background: var(--primary);
@@ -194,15 +190,15 @@
     .toolbar-btn:hover { background: var(--secondary); color: #fff; border-color: var(--secondary); }
     .toolbar-btn .material-symbols-outlined { font-size: 17px; }
 
-    /* ─── STPAGEFLIP CONTAINER ─── */
-    .flipbook-wrapper {
+    /* ─── IFRAME PDF VIEWER ─── */
+    .pdf-iframe-wrapper {
       position: relative;
       width: 100%;
       background: var(--surface-container);
       border: 1px solid var(--outline-variant);
       border-top: none;
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      padding: 20px;
+      padding: 4px;
       min-height: 75vh;
       display: flex;
       align-items: center;
@@ -210,62 +206,29 @@
       overflow: hidden;
     }
 
-    .flipbook-container {
+    .pdf-iframe-wrapper iframe {
       width: 100%;
-      max-width: 900px;
-      height: auto;
-      aspect-ratio: 1 / 1.4;
-      position: relative;
-      margin: 0 auto;
+      height: 75vh;
+      border: none;
+      border-radius: var(--radius);
+      background: #fff;
     }
 
-    #flipbook {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* StPageFlip overrides */
-    #flipbook .page {
-      background: #ffffff;
-      border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    #flipbook .page canvas {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-
-    .flipbook-loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
+    .pdf-loading {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px;
       padding: 48px 16px;
       width: 100%;
-      height: 100%;
+      min-height: 50vh;
     }
-    .flipbook-loading .spinner {
-      width: 38px;
-      height: 38px;
+    .spinner {
+      width: 38px; height: 38px;
       border: 3px solid var(--outline-variant);
       border-top-color: var(--secondary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .flipbook-loading p {
-      color: var(--on-surface-variant);
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-    }
 
     .no-pdf-state {
       display: flex; flex-direction: column; align-items: center;
@@ -278,13 +241,13 @@
     .no-pdf-state a { color: var(--secondary); font-weight: 600; text-decoration: underline; display: inline-block; margin-top: 8px; }
 
     @media (max-width: 768px) {
-      .flipbook-wrapper { padding: 12px; min-height: 50vh; }
-      .flipbook-container { max-width: 100%; }
+      .pdf-iframe-wrapper { min-height: 50vh; padding: 2px; }
+      .pdf-iframe-wrapper iframe { height: 50vh; }
     }
 
     @media (max-width: 480px) {
-      .flipbook-wrapper { padding: 8px; min-height: 40vh; }
-      .flipbook-container { aspect-ratio: 1 / 1.5; }
+      .pdf-iframe-wrapper { min-height: 40vh; }
+      .pdf-iframe-wrapper iframe { height: 40vh; }
     }
   </style>
 </head>
@@ -384,7 +347,7 @@
       <div class="file-list" id="list-assignments"></div>
     </div>
 
-    <!-- ─── PAGE-FLIP PDF VIEWER ─── -->
+    <!-- ─── IFRAME PDF VIEWER ─── -->
     <div class="viewer-section" id="viewer-section">
 
       <div class="viewer-header">
@@ -396,35 +359,7 @@
 
       <div class="viewer-toolbar">
         <div class="viewer-toolbar-left">
-          <button class="toolbar-btn" id="prev-page" title="Previous page">
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          <span class="viewer-page-info" id="page-info">Page 1 of 1</span>
-          <button class="toolbar-btn" id="next-page" title="Next page">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-          <input
-            type="number"
-            id="page-jump-input"
-            min="1"
-            title="Go to page"
-            placeholder="Go to…"
-            style="
-              width: 80px; padding: 5px 8px;
-              border: 1px solid var(--outline-variant);
-              border-radius: var(--radius-sm);
-              font-family: inherit; font-size: 13px;
-              color: var(--on-surface);
-              background: var(--surface-container-low);
-              outline: none;
-            "
-          />
-          <button class="toolbar-btn" id="zoom-in" title="Zoom in">
-            <span class="material-symbols-outlined">zoom_in</span>
-          </button>
-          <button class="toolbar-btn" id="zoom-out" title="Zoom out">
-            <span class="material-symbols-outlined">zoom_out</span>
-          </button>
+          <span class="viewer-page-info">📄 PDF Viewer</span>
         </div>
         <div class="viewer-toolbar-right">
           <a id="download-btn" class="toolbar-btn" title="Download PDF" download>
@@ -433,15 +368,12 @@
         </div>
       </div>
 
-      <div class="flipbook-wrapper">
-        <div class="flipbook-container">
-          <div id="flipbook">
-            <div class="flipbook-loading" id="flipbook-loading">
-              <div class="spinner"></div>
-              <p>Loading PDF...</p>
-            </div>
-          </div>
+      <div class="pdf-iframe-wrapper" id="pdf-wrapper">
+        <div class="pdf-loading" id="pdf-loading">
+          <div class="spinner"></div>
+          <p style="color:var(--on-surface-variant);font-size:14px;">Loading PDF...</p>
         </div>
+        <iframe id="pdf-iframe" style="display:none;" allowfullscreen></iframe>
       </div>
     </div>
 
@@ -461,15 +393,9 @@
   </footer>
 </div>
 
-<!-- ─── LIBRARIES ─── -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/page-flip.browser.js"></script>
 <script src="js/files.js"></script>
 
 <script>
-  // ─── PDF.js Configuration ───
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
   // ─── SYLLABUS DATA ───
   var SYLLABUS = {
     1: { subjects: [
@@ -628,10 +554,11 @@
     })(tabBtns[b]);
   }
 
-  // ─── PAGE-FLIP PDF VIEWER (StPageFlip) ───
-  var flipbookInstance = null;
-  var currentPDFPages = [];
-  var totalPDFPages = 0;
+  // ─── IFRAME PDF VIEWER ───
+  var pdfIframe = document.getElementById('pdf-iframe');
+  var pdfLoading = document.getElementById('pdf-loading');
+  var pdfWrapper = document.getElementById('pdf-wrapper');
+  var downloadBtn = document.getElementById('download-btn');
 
   function openFile(tabKey, index) {
     var file = (subjectFiles[tabKey] || [])[index];
@@ -655,206 +582,44 @@
       viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    var downloadBtn = document.getElementById('download-btn');
     if (downloadBtn) downloadBtn.href = file.file;
 
-    loadPDFToFlipbook(file.file);
+    loadPDF(file.file);
   }
 
-  function loadPDFToFlipbook(url) {
-    var container = document.getElementById('flipbook');
-    var loadingEl = document.getElementById('flipbook-loading');
-
+  function loadPDF(url) {
     // Show loading
-    loadingEl.style.display = 'flex';
-    loadingEl.innerHTML = '<div class="spinner"></div><p>Loading PDF... Please wait.</p>';
+    pdfLoading.style.display = 'flex';
+    pdfIframe.style.display = 'none';
 
-    // Destroy existing flipbook if any
-    if (flipbookInstance) {
-      try {
-        flipbookInstance.destroy();
-        flipbookInstance = null;
-      } catch (e) {}
-    }
+    // Set iframe source
+    pdfIframe.src = url;
 
-    // Clear container
-    var pages = container.querySelectorAll('.page');
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].remove();
-    }
+    // Hide loading once iframe loads
+    pdfIframe.onload = function() {
+      pdfLoading.style.display = 'none';
+      pdfIframe.style.display = 'block';
+    };
 
-    // ─── Fetch PDF ───
-    fetch(url)
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-        }
-        return response.arrayBuffer();
-      })
-      .then(function(arrayBuffer) {
-        return pdfjsLib.getDocument({
-          data: arrayBuffer,
-          useSystemFonts: true,
-          standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
-        }).promise;
-      })
-      .then(function(pdf) {
-        totalPDFPages = pdf.numPages;
-        console.log('✅ PDF loaded successfully! Pages:', totalPDFPages);
+    // Fallback: if iframe takes too long, show error
+    var timeout = setTimeout(function() {
+      pdfLoading.style.display = 'none';
+      pdfIframe.style.display = 'none';
+      pdfWrapper.innerHTML = '<div class="no-pdf-state">' +
+        '<span class="material-symbols-outlined">error</span>' +
+        '<h3>PDF Cannot Be Displayed</h3>' +
+        '<p>The PDF may be taking too long to load or is unavailable.</p>' +
+        '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
+        '📄 Click here to open PDF directly →' +
+        '</a>' +
+        '</div>';
+    }, 15000);
 
-        var pagePromises = [];
-        for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          pagePromises.push(pdf.getPage(pageNum).then(function(page) {
-            var viewport = page.getViewport({ scale: 1.2 });
-            var canvas = document.createElement('canvas');
-            canvas.className = 'st-page';
-            var context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            return page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
-              return canvas;
-            });
-          }));
-        }
-        return Promise.all(pagePromises);
-      })
-      .then(function(canvases) {
-        var container = document.getElementById('flipbook');
-        var loadingEl = document.getElementById('flipbook-loading');
-        loadingEl.style.display = 'none';
-
-        // ─── Initialize StPageFlip ───
-        // Calculate container size
-        var rect = container.getBoundingClientRect();
-        var width = rect.width || 800;
-        var height = rect.height || 1100;
-
-        // Add canvases as pages
-        for (var i = 0; i < canvases.length; i++) {
-          var pageDiv = document.createElement('div');
-          pageDiv.className = 'page';
-          pageDiv.appendChild(canvases[i]);
-          container.appendChild(pageDiv);
-        }
-
-        // Initialize StPageFlip
-        flipbookInstance = new StPageFlip(container, {
-          width: width,
-          height: height,
-          size: 'stretch',
-          showCover: false,
-          drawShadow: true,
-          flippingTime: 700,
-          startZIndex: 0,
-          useMouseEvents: true,
-          useTouchEvents: true,
-          useSwipeEvents: false
-        });
-
-        // Load pages
-        flipbookInstance.loadFromHTML(container.querySelectorAll('.page'));
-
-        // Update page info
-        document.getElementById('page-info').textContent = '1 / ' + totalPDFPages;
-        var jumpInput = document.getElementById('page-jump-input');
-        if (jumpInput) {
-          jumpInput.max = totalPDFPages;
-          jumpInput.value = 1;
-        }
-
-        // ─── StPageFlip event listeners ───
-        flipbookInstance.on('flip', function(e) {
-          var currentPage = e.data;
-          document.getElementById('page-info').textContent = currentPage + ' / ' + totalPDFPages;
-          var jumpInput = document.getElementById('page-jump-input');
-          if (jumpInput) {
-            jumpInput.value = currentPage;
-          }
-        });
-      })
-      .catch(function(error) {
-        console.error('❌ Error loading PDF:', error);
-        var container = document.getElementById('flipbook');
-        var loadingEl = document.getElementById('flipbook-loading');
-        loadingEl.style.display = 'none';
-
-        container.innerHTML = '<div class="no-pdf-state">' +
-          '<span class="material-symbols-outlined">error</span>' +
-          '<h3>PDF Cannot Be Displayed</h3>' +
-          '<p>Error: ' + error.message + '</p>' +
-          '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
-          '📄 Click here to open PDF directly →' +
-          '</a>' +
-          '</div>';
-      });
+    // Clear timeout if iframe loads
+    pdfIframe.onload = function() {
+      clearTimeout(timeout);
+    };
   }
-
-  // ─── Navigation Controls ───
-  document.getElementById('prev-page').addEventListener('click', function() {
-    if (flipbookInstance) {
-      flipbookInstance.flipPrev();
-    }
-  });
-
-  document.getElementById('next-page').addEventListener('click', function() {
-    if (flipbookInstance) {
-      flipbookInstance.flipNext();
-    }
-  });
-
-  // ─── Page Jump ───
-  var jumpInput = document.getElementById('page-jump-input');
-  if (jumpInput) {
-    jumpInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        var val = parseInt(this.value);
-        if (!isNaN(val) && val >= 1 && val <= totalPDFPages && flipbookInstance) {
-          flipbookInstance.flip(val);
-        }
-      }
-    });
-
-    jumpInput.addEventListener('blur', function() {
-      var val = parseInt(this.value);
-      if (!isNaN(val) && val >= 1 && val <= totalPDFPages && flipbookInstance) {
-        flipbookInstance.flip(val);
-      }
-    });
-  }
-
-  // ─── Zoom Controls ───
-  var currentZoom = 1.0;
-  var flipbookContainer = document.querySelector('.flipbook-container');
-
-  document.getElementById('zoom-in').addEventListener('click', function() {
-    currentZoom = Math.min(currentZoom + 0.1, 2.0);
-    applyZoom();
-  });
-
-  document.getElementById('zoom-out').addEventListener('click', function() {
-    currentZoom = Math.max(currentZoom - 0.1, 0.6);
-    applyZoom();
-  });
-
-  function applyZoom() {
-    if (flipbookContainer) {
-      flipbookContainer.style.transform = 'scale(' + currentZoom + ')';
-      flipbookContainer.style.transformOrigin = 'center center';
-    }
-  }
-
-  // ─── Resize handler ───
-  var resizeTimer;
-  window.addEventListener('resize', function() {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function() {
-      if (flipbookInstance) {
-        var container = document.getElementById('flipbook');
-        var rect = container.getBoundingClientRect();
-        flipbookInstance.updateSize(rect.width, rect.height);
-      }
-    }, 300);
-  });
 
   // ─── Sidebar ───
   var sidebar = document.getElementById('sidebar');
