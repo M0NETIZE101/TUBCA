@@ -554,72 +554,102 @@
     })(tabBtns[b]);
   }
 
-  // ─── IFRAME PDF VIEWER ───
-  var pdfIframe = document.getElementById('pdf-iframe');
-  var pdfLoading = document.getElementById('pdf-loading');
-  var pdfWrapper = document.getElementById('pdf-wrapper');
-  var downloadBtn = document.getElementById('download-btn');
+  // ─── IFRAME/OBJECT PDF VIEWER ───
+var pdfContainer = document.getElementById('pdf-wrapper');
+var pdfLoading = document.getElementById('pdf-loading');
+var downloadBtn = document.getElementById('download-btn');
 
-  function openFile(tabKey, index) {
-    var file = (subjectFiles[tabKey] || [])[index];
-    if (!file) return;
+function openFile(tabKey, index) {
+  var file = (subjectFiles[tabKey] || [])[index];
+  if (!file) return;
 
-    var allItems = document.querySelectorAll('.file-item');
-    for (var i = 0; i < allItems.length; i++) {
-      allItems[i].classList.remove('active-file');
-    }
-
-    var selectedItems = document.querySelectorAll('[data-tab="' + tabKey + '"][data-index="' + index + '"]');
-    for (var j = 0; j < selectedItems.length; j++) {
-      selectedItems[j].classList.add('active-file');
-    }
-
-    document.getElementById('viewer-file-title').textContent = file.title;
-
-    var viewerSection = document.getElementById('viewer-section');
-    if (viewerSection) {
-      viewerSection.classList.add('visible');
-      viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    if (downloadBtn) downloadBtn.href = file.file;
-
-    loadPDF(file.file);
+  var allItems = document.querySelectorAll('.file-item');
+  for (var i = 0; i < allItems.length; i++) {
+    allItems[i].classList.remove('active-file');
   }
 
-  function loadPDF(url) {
-    // Show loading
-    pdfLoading.style.display = 'flex';
-    pdfIframe.style.display = 'none';
+  var selectedItems = document.querySelectorAll('[data-tab="' + tabKey + '"][data-index="' + index + '"]');
+  for (var j = 0; j < selectedItems.length; j++) {
+    selectedItems[j].classList.add('active-file');
+  }
 
-    // Set iframe source
-    pdfIframe.src = url;
+  document.getElementById('viewer-file-title').textContent = file.title;
 
-    // Hide loading once iframe loads
-    pdfIframe.onload = function() {
-      pdfLoading.style.display = 'none';
-      pdfIframe.style.display = 'block';
-    };
+  var viewerSection = document.getElementById('viewer-section');
+  if (viewerSection) {
+    viewerSection.classList.add('visible');
+    viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
-    // Fallback: if iframe takes too long, show error
-    var timeout = setTimeout(function() {
-      pdfLoading.style.display = 'none';
-      pdfIframe.style.display = 'none';
-      pdfWrapper.innerHTML = '<div class="no-pdf-state">' +
-        '<span class="material-symbols-outlined">error</span>' +
+  if (downloadBtn) downloadBtn.href = file.file;
+
+  loadPDF(file.file);
+}
+
+function loadPDF(url) {
+  // Show loading
+  pdfLoading.style.display = 'flex';
+
+  // Remove existing object/iframe
+  var existing = pdfContainer.querySelector('object, iframe');
+  if (existing) existing.remove();
+
+  // Create absolute URL (in case relative path)
+  var absoluteUrl = url;
+  if (!absoluteUrl.startsWith('http://') && !absoluteUrl.startsWith('https://')) {
+    absoluteUrl = window.location.origin + '/' + url;
+  }
+
+  // Use <object> tag for PDF embedding (most reliable)
+  var obj = document.createElement('object');
+  obj.type = 'application/pdf';
+  obj.data = absoluteUrl;
+  obj.width = '100%';
+  obj.height = '75vh';
+  obj.style.border = 'none';
+  obj.style.borderRadius = '8px';
+  obj.style.background = '#fff';
+
+  // Fallback: if object fails, show link
+  obj.innerHTML = '<div class="no-pdf-state">' +
+    '<span class="material-symbols-outlined">picture_as_pdf</span>' +
+    '<h3>PDF Viewer Not Available</h3>' +
+    '<p>Your browser may not support PDF embedding.</p>' +
+    '<a href="' + absoluteUrl + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
+    '📄 Click here to open PDF directly →' +
+    '</a>' +
+    '</div>';
+
+  pdfContainer.appendChild(obj);
+
+  // Hide loading once object loads
+  obj.onload = function() {
+    pdfLoading.style.display = 'none';
+  };
+
+  // If object fails to load after timeout, show fallback
+  var timeout = setTimeout(function() {
+    pdfLoading.style.display = 'none';
+    // Check if object loaded successfully (if it has content)
+    // If not, show fallback link
+    if (!obj.contentDocument) {
+      obj.innerHTML = '<div class="no-pdf-state">' +
+        '<span class="material-symbols-outlined">picture_as_pdf</span>' +
         '<h3>PDF Cannot Be Displayed</h3>' +
-        '<p>The PDF may be taking too long to load or is unavailable.</p>' +
-        '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
+        '<p>Try opening the PDF directly.</p>' +
+        '<a href="' + absoluteUrl + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
         '📄 Click here to open PDF directly →' +
         '</a>' +
         '</div>';
-    }, 15000);
+    }
+  }, 10000);
 
-    // Clear timeout if iframe loads
-    pdfIframe.onload = function() {
-      clearTimeout(timeout);
-    };
-  }
+  // Clear timeout if object loads
+  obj.onload = function() {
+    clearTimeout(timeout);
+    pdfLoading.style.display = 'none';
+  };
+}
 
   // ─── Sidebar ───
   var sidebar = document.getElementById('sidebar');
