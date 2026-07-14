@@ -13,6 +13,7 @@
   <!-- Turn.js for page-flip animations -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.css" />
   <style>
+    /* ... (same styles as before) ... */
     .subject-header {
       background: var(--primary);
       color: #fff;
@@ -46,7 +47,6 @@
     }
     .subject-credits { font-size: 14px; color: rgba(255,255,255,0.65); font-weight: 500; }
 
-    /* ── Main content area ── */
     .subject-body {
       max-width: var(--container-max);
       width: 100%;
@@ -56,7 +56,6 @@
       overflow-x: hidden;
     }
 
-    /* ── Tabs ── */
     .tabs-wrap {
       display: flex;
       gap: 4px;
@@ -91,7 +90,6 @@
     }
     .tab-btn.active .tab-count { background: var(--secondary-fixed); color: var(--secondary); }
 
-    /* ── File list panel ── */
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -143,7 +141,6 @@
     .empty-tab h3 { font-size: 18px; font-weight: 600; color: var(--primary); margin-bottom: 4px; }
     .empty-tab p  { font-size: 14px; color: var(--on-surface-variant); }
 
-    /* ── PAGE-FLIP PDF VIEWER ── */
     .viewer-section {
       margin-top: var(--space-4);
       display: none;
@@ -197,7 +194,6 @@
     .toolbar-btn:hover { background: var(--secondary); color: #fff; border-color: var(--secondary); }
     .toolbar-btn .material-symbols-outlined { font-size: 17px; }
 
-    /* ─── PAGE-FLIP CONTAINER ─── */
     .flipbook-wrapper {
       position: relative;
       width: 100%;
@@ -250,7 +246,6 @@
       border-radius: 4px;
     }
 
-    /* Book shadow effect */
     #flipbook .page::after {
       content: '';
       position: absolute;
@@ -268,7 +263,6 @@
       );
     }
 
-    /* Page number label on each page */
     .page-number {
       position: absolute;
       bottom: 16px;
@@ -281,7 +275,6 @@
       letter-spacing: 0.05em;
     }
 
-    /* Loading state for flipbook */
     .flipbook-loading {
       display: flex;
       flex-direction: column;
@@ -315,8 +308,8 @@
     .no-pdf-state .material-symbols-outlined { font-size: 48px; color: var(--outline); }
     .no-pdf-state h3 { font-size: 18px; font-weight: 600; color: var(--primary); }
     .no-pdf-state p  { font-size: 14px; color: var(--on-surface-variant); }
+    .no-pdf-state a { color: var(--secondary); font-weight: 600; text-decoration: underline; display: inline-block; margin-top: 8px; }
 
-    /* Responsive */
     @media (max-width: 768px) {
       .flipbook-wrapper { padding: 12px; min-height: 50vh; }
       .flipbook-container { max-width: 100%; }
@@ -410,24 +403,21 @@
       </button>
     </div>
 
-    <!-- Notes panel -->
+    <!-- Panels -->
     <div class="tab-panel active" id="panel-notes">
       <div class="file-list" id="list-notes"></div>
     </div>
-
     <div class="tab-panel" id="panel-question-papers">
       <div class="file-list" id="list-question-papers"></div>
     </div>
-
     <div class="tab-panel" id="panel-lab-reports">
       <div class="file-list" id="list-lab-reports"></div>
     </div>
-
     <div class="tab-panel" id="panel-assignments">
       <div class="file-list" id="list-assignments"></div>
     </div>
 
-    <!-- ─── PAGE-FLIP PDF VIEWER ─── -->
+    <!-- Page-Flip PDF Viewer -->
     <div class="viewer-section" id="viewer-section">
 
       <div class="viewer-header">
@@ -481,7 +471,7 @@
           <div id="flipbook">
             <div class="flipbook-loading" id="flipbook-loading">
               <div class="spinner"></div>
-              <p>Loading PDF pages...</p>
+              <p>Loading PDF...</p>
             </div>
           </div>
         </div>
@@ -715,218 +705,116 @@
     loadPDFToFlipbook(file.file);
   }
 
- function loadPDFToFlipbook(url) {
-  var container = document.getElementById('flipbook');
-  var loadingEl = document.getElementById('flipbook-loading');
+  // ─── FIXED: Load PDF with fetch + arrayBuffer ───
+  function loadPDFToFlipbook(url) {
+    var container = document.getElementById('flipbook');
+    var loadingEl = document.getElementById('flipbook-loading');
 
-  // Show loading
-  loadingEl.style.display = 'flex';
-  loadingEl.innerHTML = '<div class="spinner"></div><p>Loading PDF... Please wait.</p>';
+    loadingEl.style.display = 'flex';
+    loadingEl.innerHTML = '<div class="spinner"></div><p>Loading PDF... Please wait.</p>';
 
-  // ─── FIX: Use fetch with arrayBuffer to avoid PDF.js fetch issues ───
-  fetch(url)
-    .then(function(response) {
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-      }
-      return response.arrayBuffer();
-    })
-    .then(function(arrayBuffer) {
-      // ─── FIX: Load PDF from arrayBuffer instead of URL ───
-      return pdfjsLib.getDocument({
-        data: arrayBuffer,
-        useSystemFonts: true,
-        standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
-      }).promise;
-    })
-    .then(function(pdf) {
-      totalPDFPages = pdf.numPages;
-      console.log('✅ PDF loaded successfully! Pages:', totalPDFPages);
+    fetch(url)
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+        }
+        return response.arrayBuffer();
+      })
+      .then(function(arrayBuffer) {
+        return pdfjsLib.getDocument({
+          data: arrayBuffer,
+          useSystemFonts: true,
+          standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
+        }).promise;
+      })
+      .then(function(pdf) {
+        totalPDFPages = pdf.numPages;
+        console.log('✅ PDF loaded successfully! Pages:', totalPDFPages);
 
-      var pagePromises = [];
+        var pagePromises = [];
+        for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          pagePromises.push(pdf.getPage(pageNum).then(function(page) {
+            var viewport = page.getViewport({ scale: 1.5 });
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            return page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
+              return canvas;
+            });
+          }));
+        }
+        return Promise.all(pagePromises);
+      })
+      .then(function(canvases) {
+        var container = document.getElementById('flipbook');
+        var loadingEl = document.getElementById('flipbook-loading');
+        loadingEl.style.display = 'none';
 
-      for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        pagePromises.push(pdf.getPage(pageNum).then(function(page) {
-          var viewport = page.getViewport({ scale: 1.5 });
-          var canvas = document.createElement('canvas');
-          var context = canvas.getContext('2d');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          return page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
-            return canvas;
-          });
-        }));
-      }
+        var pages = container.querySelectorAll('.page');
+        for (var i = 0; i < pages.length; i++) {
+          pages[i].remove();
+        }
 
-      return Promise.all(pagePromises);
-    })
-    .then(function(canvases) {
-      // Build pages in flipbook
-      var container = document.getElementById('flipbook');
-      var loadingEl = document.getElementById('flipbook-loading');
-      loadingEl.style.display = 'none';
+        for (var i = 0; i < canvases.length; i++) {
+          var pageDiv = document.createElement('div');
+          pageDiv.className = 'page';
+          pageDiv.dataset.page = i + 1;
+          pageDiv.appendChild(canvases[i]);
 
-      // Remove old pages
-      var pages = container.querySelectorAll('.page');
-      for (var i = 0; i < pages.length; i++) {
-        pages[i].remove();
-      }
+          var pageNumEl = document.createElement('div');
+          pageNumEl.className = 'page-number';
+          pageNumEl.textContent = (i + 1) + ' / ' + canvases.length;
+          pageDiv.appendChild(pageNumEl);
 
-      for (var i = 0; i < canvases.length; i++) {
-        var pageDiv = document.createElement('div');
-        pageDiv.className = 'page';
-        pageDiv.dataset.page = i + 1;
-        pageDiv.appendChild(canvases[i]);
+          container.appendChild(pageDiv);
+        }
 
-        var pageNumEl = document.createElement('div');
-        pageNumEl.className = 'page-number';
-        pageNumEl.textContent = (i + 1) + ' / ' + canvases.length;
-        pageDiv.appendChild(pageNumEl);
-
-        container.appendChild(pageDiv);
-      }
-
-      // Initialize Turn.js
-      $('#flipbook').turn({
-        width: '100%',
-        height: '100%',
-        autoCenter: true,
-        display: 'double',
-        acceleration: true,
-        gradients: true,
-        elevation: 50,
-        when: {
-          turning: function(event, page, view) {
-            var currentPage = page;
-            var totalPages = $(this).turn('pages');
-            document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
-            var jumpInput = document.getElementById('page-jump-input');
-            if (jumpInput) {
-              jumpInput.value = currentPage;
-              jumpInput.max = totalPages;
+        $('#flipbook').turn({
+          width: '100%',
+          height: '100%',
+          autoCenter: true,
+          display: 'double',
+          acceleration: true,
+          gradients: true,
+          elevation: 50,
+          when: {
+            turning: function(event, page, view) {
+              var currentPage = page;
+              var totalPages = $(this).turn('pages');
+              document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+              var jumpInput = document.getElementById('page-jump-input');
+              if (jumpInput) {
+                jumpInput.value = currentPage;
+                jumpInput.max = totalPages;
+              }
             }
           }
+        });
+
+        flipbookInitialized = true;
+        document.getElementById('page-info').textContent = 'Page 1 of ' + canvases.length;
+        var jumpInput = document.getElementById('page-jump-input');
+        if (jumpInput) {
+          jumpInput.max = canvases.length;
+          jumpInput.value = 1;
         }
+      })
+      .catch(function(error) {
+        console.error('❌ Error loading PDF:', error);
+        var container = document.getElementById('flipbook');
+        var loadingEl = document.getElementById('flipbook-loading');
+        loadingEl.style.display = 'none';
+
+        container.innerHTML = '<div class="no-pdf-state">' +
+          '<span class="material-symbols-outlined">error</span>' +
+          '<h3>PDF Cannot Be Displayed</h3>' +
+          '<p>Error: ' + error.message + '</p>' +
+          '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
+          '📄 Click here to open PDF directly →' +
+          '</a>' +
+          '</div>';
       });
-
-      flipbookInitialized = true;
-      document.getElementById('page-info').textContent = 'Page 1 of ' + canvases.length;
-      var jumpInput = document.getElementById('page-jump-input');
-      if (jumpInput) {
-        jumpInput.max = canvases.length;
-        jumpInput.value = 1;
-      }
-
-    })
-    .catch(function(error) {
-      console.error('❌ Error loading PDF:', error);
-      var container = document.getElementById('flipbook');
-      var loadingEl = document.getElementById('flipbook-loading');
-      loadingEl.style.display = 'none';
-
-      // ─── FALLBACK: Open PDF directly ───
-      container.innerHTML = '<div class="no-pdf-state">' +
-        '<span class="material-symbols-outlined">error</span>' +
-        '<h3>PDF Cannot Be Displayed</h3>' +
-        '<p>Error: ' + error.message + '</p>' +
-        '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
-        '📄 Click here to open PDF directly →' +
-        '</a>' +
-        '</div>';
-    });
-}
-
-    // Clear container (keep loading element)
-    var pages = container.querySelectorAll('.page');
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].remove();
-    }
-
-    // Load PDF with PDF.js
-    pdfjsLib.getDocument(url).promise.then(function(pdf) {
-      totalPDFPages = pdf.numPages;
-      var pagePromises = [];
-
-      for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        pagePromises.push(pdf.getPage(pageNum).then(function(page) {
-          var viewport = page.getViewport({ scale: 1.5 });
-          var canvas = document.createElement('canvas');
-          var context = canvas.getContext('2d');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-
-          return page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
-            return canvas;
-          });
-        }));
-      }
-
-      return Promise.all(pagePromises);
-    }).then(function(canvases) {
-      // Build pages in flipbook
-      var container = document.getElementById('flipbook');
-      var loadingEl = document.getElementById('flipbook-loading');
-      loadingEl.style.display = 'none';
-
-      for (var i = 0; i < canvases.length; i++) {
-        var pageDiv = document.createElement('div');
-        pageDiv.className = 'page';
-        pageDiv.dataset.page = i + 1;
-        pageDiv.appendChild(canvases[i]);
-
-        // Add page number
-        var pageNumEl = document.createElement('div');
-        pageNumEl.className = 'page-number';
-        pageNumEl.textContent = (i + 1) + ' / ' + canvases.length;
-        pageDiv.appendChild(pageNumEl);
-
-        container.appendChild(pageDiv);
-      }
-
-      // Initialize Turn.js with page-flip
-      $('#flipbook').turn({
-        width: '100%',
-        height: '100%',
-        autoCenter: true,
-        display: 'double',
-        acceleration: true,
-        gradients: true,
-        elevation: 50,
-        when: {
-          turning: function(event, page, view) {
-            var currentPage = page;
-            var totalPages = $(this).turn('pages');
-            document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
-            var jumpInput = document.getElementById('page-jump-input');
-            if (jumpInput) {
-              jumpInput.value = currentPage;
-              jumpInput.max = totalPages;
-            }
-          }
-        }
-      });
-
-      flipbookInitialized = true;
-
-      // Update page info
-      document.getElementById('page-info').textContent = 'Page 1 of ' + canvases.length;
-      var jumpInput = document.getElementById('page-jump-input');
-      if (jumpInput) {
-        jumpInput.max = canvases.length;
-        jumpInput.value = 1;
-      }
-
-    }).catch(function(error) {
-      console.error('Error loading PDF:', error);
-      var container = document.getElementById('flipbook');
-      var loadingEl = document.getElementById('flipbook-loading');
-      loadingEl.style.display = 'none';
-      container.innerHTML = '<div class="no-pdf-state">' +
-        '<span class="material-symbols-outlined">picture_as_pdf</span>' +
-        '<h3>PDF Not Available</h3>' +
-        '<p>Could not load this PDF. Please try again.</p>' +
-        '</div>';
-    });
   }
 
   // ─── Navigation Controls ───
