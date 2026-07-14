@@ -715,20 +715,126 @@
     loadPDFToFlipbook(file.file);
   }
 
-  function loadPDFToFlipbook(url) {
-    var container = document.getElementById('flipbook');
-    var loadingEl = document.getElementById('flipbook-loading');
+ function loadPDFToFlipbook(url) {
+  var container = document.getElementById('flipbook');
+  var loadingEl = document.getElementById('flipbook-loading');
 
-    // Show loading
-    loadingEl.style.display = 'flex';
+  // Show loading
+  loadingEl.style.display = 'flex';
+  loadingEl.innerHTML = '<div class="spinner"></div><p>Loading PDF... Please wait.</p>';
 
-    // Destroy existing flipbook
-    if (flipbookInitialized) {
-      try {
-        $('#flipbook').turn('destroy');
-      } catch (e) {}
-      flipbookInitialized = false;
-    }
+  // ─── FIX: Use fetch with arrayBuffer to avoid PDF.js fetch issues ───
+  fetch(url)
+    .then(function(response) {
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+      }
+      return response.arrayBuffer();
+    })
+    .then(function(arrayBuffer) {
+      // ─── FIX: Load PDF from arrayBuffer instead of URL ───
+      return pdfjsLib.getDocument({
+        data: arrayBuffer,
+        useSystemFonts: true,
+        standardFontDataUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
+      }).promise;
+    })
+    .then(function(pdf) {
+      totalPDFPages = pdf.numPages;
+      console.log('✅ PDF loaded successfully! Pages:', totalPDFPages);
+
+      var pagePromises = [];
+
+      for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        pagePromises.push(pdf.getPage(pageNum).then(function(page) {
+          var viewport = page.getViewport({ scale: 1.5 });
+          var canvas = document.createElement('canvas');
+          var context = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          return page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
+            return canvas;
+          });
+        }));
+      }
+
+      return Promise.all(pagePromises);
+    })
+    .then(function(canvases) {
+      // Build pages in flipbook
+      var container = document.getElementById('flipbook');
+      var loadingEl = document.getElementById('flipbook-loading');
+      loadingEl.style.display = 'none';
+
+      // Remove old pages
+      var pages = container.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) {
+        pages[i].remove();
+      }
+
+      for (var i = 0; i < canvases.length; i++) {
+        var pageDiv = document.createElement('div');
+        pageDiv.className = 'page';
+        pageDiv.dataset.page = i + 1;
+        pageDiv.appendChild(canvases[i]);
+
+        var pageNumEl = document.createElement('div');
+        pageNumEl.className = 'page-number';
+        pageNumEl.textContent = (i + 1) + ' / ' + canvases.length;
+        pageDiv.appendChild(pageNumEl);
+
+        container.appendChild(pageDiv);
+      }
+
+      // Initialize Turn.js
+      $('#flipbook').turn({
+        width: '100%',
+        height: '100%',
+        autoCenter: true,
+        display: 'double',
+        acceleration: true,
+        gradients: true,
+        elevation: 50,
+        when: {
+          turning: function(event, page, view) {
+            var currentPage = page;
+            var totalPages = $(this).turn('pages');
+            document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+            var jumpInput = document.getElementById('page-jump-input');
+            if (jumpInput) {
+              jumpInput.value = currentPage;
+              jumpInput.max = totalPages;
+            }
+          }
+        }
+      });
+
+      flipbookInitialized = true;
+      document.getElementById('page-info').textContent = 'Page 1 of ' + canvases.length;
+      var jumpInput = document.getElementById('page-jump-input');
+      if (jumpInput) {
+        jumpInput.max = canvases.length;
+        jumpInput.value = 1;
+      }
+
+    })
+    .catch(function(error) {
+      console.error('❌ Error loading PDF:', error);
+      var container = document.getElementById('flipbook');
+      var loadingEl = document.getElementById('flipbook-loading');
+      loadingEl.style.display = 'none';
+
+      // ─── FALLBACK: Open PDF directly ───
+      container.innerHTML = '<div class="no-pdf-state">' +
+        '<span class="material-symbols-outlined">error</span>' +
+        '<h3>PDF Cannot Be Displayed</h3>' +
+        '<p>Error: ' + error.message + '</p>' +
+        '<a href="' + url + '" target="_blank" style="color:var(--secondary);font-weight:600;text-decoration:underline;margin-top:8px;display:inline-block;">' +
+        '📄 Click here to open PDF directly →' +
+        '</a>' +
+        '</div>';
+    });
+}
 
     // Clear container (keep loading element)
     var pages = container.querySelectorAll('.page');
