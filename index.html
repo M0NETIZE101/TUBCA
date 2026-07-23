@@ -98,6 +98,7 @@
       border: none;
       font-family: inherit;
     }
+
     .notification-dropdown-header .mark-read:hover {
       text-decoration: underline;
     }
@@ -108,16 +109,20 @@
       cursor: pointer;
       transition: background 0.15s;
     }
+
     .notification-item:hover {
       background: var(--secondary-fixed);
     }
+
     .notification-item:last-child {
       border-bottom: none;
     }
+
     .notification-item.unread {
       background: rgba(0, 97, 165, 0.04);
       border-left: 3px solid var(--secondary);
     }
+
     .notification-item.unread:hover {
       background: var(--secondary-fixed);
     }
@@ -131,6 +136,7 @@
       gap: 6px;
       flex-wrap: wrap;
     }
+
     .notification-item .ntype {
       font-size: 9px;
       font-weight: 700;
@@ -140,6 +146,7 @@
       border-radius: var(--radius-full);
       flex-shrink: 0;
     }
+
     .notification-item .ntype.important { background: var(--error-container); color: var(--error); }
     .notification-item .ntype.exam { background: #fff3e0; color: #e65100; }
     .notification-item .ntype.event { background: #e8f5e9; color: #2e7d32; }
@@ -150,6 +157,7 @@
       color: var(--on-surface-variant);
       margin-top: 3px;
     }
+
     .notification-item .ncontent {
       font-size: 13px;
       color: var(--on-surface-variant);
@@ -167,10 +175,12 @@
       color: var(--on-surface-variant);
       font-size: 13px;
     }
+
     .notification-empty .material-symbols-outlined {
       font-size: 36px;
       color: var(--outline);
       margin-bottom: 8px;
+      display: block;
     }
 
     .notification-footer {
@@ -182,12 +192,14 @@
       background: var(--surface-container-lowest);
       border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     }
+
     .notification-footer a {
       color: var(--secondary);
       font-size: 13px;
       font-weight: 600;
       text-decoration: none;
     }
+
     .notification-footer a:hover {
       text-decoration: underline;
     }
@@ -214,10 +226,6 @@
 <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
 
 <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
-<!--
-  Fixed left sidebar. Background: Surface 1 (#F7FAFC).
-  Active item has 4px left border + bold text (DESIGN.md: Sidebar Navigation).
--->
 <aside class="sidebar custom-scrollbar" id="sidebar" aria-label="Semester navigation">
 
   <!-- Brand block -->
@@ -227,7 +235,7 @@
   </div>
 
   <!-- Semester navigation links — data-semester tells JS which semester to render -->
-  <nav class="sidebar-nav" aria-label="Semesters">
+  <nav aria-label="Semesters">
     <ul>
       <li>
         <a href="#" class="nav-link active" data-semester="1" aria-current="page">
@@ -292,25 +300,19 @@
 <div class="main-wrapper">
 
   <!-- ── TOP NAVIGATION BAR ──────────────────────────────── -->
-  <!--
-    Sticky topbar. Background: Surface (#F7FAFC).
-    Contains: sidebar toggle (mobile), brand, search, upload, icons, avatar.
-    See CSS Section 5.
-  -->
   <header class="topbar" role="banner">
     <div class="topbar-left">
-      <!-- Hamburger: only visible on mobile (CSS display:none on desktop) -->
       <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="sidebar">
         <span class="material-symbols-outlined" aria-hidden="true">menu</span>
       </button>
 
       <span class="topbar-brand">BCA Student Portal</span>
 
-      <!-- Search bar — pill shape, expands on focus -->
       <div class="search-wrap" role="search">
         <span class="material-symbols-outlined search-icon" aria-hidden="true">search</span>
         <input
           class="search-input"
+          id="search-input"
           type="search"
           placeholder="Search resources, notes..."
           aria-label="Search study resources"
@@ -321,20 +323,19 @@
     <div class="topbar-right">
       <!-- Notification Bell with Dropdown -->
       <div class="notification-wrapper">
-        <button class="icon-btn" id="notification-btn" aria-label="Notifications" style="position:relative;">
+        <button class="icon-btn" id="notification-btn" aria-label="Notifications" aria-expanded="false" aria-haspopup="true">
           <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-          <span class="notification-badge" id="notification-badge">0</span>
+          <span class="notification-badge" id="notification-badge" aria-live="polite">0</span>
         </button>
 
-        <!-- Dropdown -->
-        <div class="notification-dropdown" id="notification-dropdown">
+        <div class="notification-dropdown" id="notification-dropdown" role="menu" aria-label="Notification list">
           <div class="notification-dropdown-header">
-            <span>📢 Latest Notices</span>
-            <button class="mark-read" id="mark-read-btn">Mark all as read</button>
+            <span>Latest Notices</span>
+            <button class="mark-read" id="mark-read-btn" type="button">Mark all as read</button>
           </div>
           <div id="notification-list">
             <div class="notification-empty">
-              <span class="material-symbols-outlined">notifications_off</span>
+              <span class="material-symbols-outlined" aria-hidden="true">notifications_off</span>
               <div>Loading notices...</div>
             </div>
           </div>
@@ -356,37 +357,34 @@
   <!-- ── PAGE CONTENT ─────────────────────────────────────── -->
   <main class="page-content" id="main-content" aria-label="Study resources">
 
-    <!-- Page header: title + filter controls -->
     <div class="content-header">
       <div>
-        <!-- id="page-heading" and id="page-subheading" are updated by JS on semester switch -->
         <h2 id="page-heading" class="text-headline-lg" style="color: var(--primary);">Year 1 — Semester I — Subjects</h2>
         <p id="page-subheading" class="text-body-lg" style="color: var(--on-surface-variant); margin-top: 6px;">
           6 subjects · click any card to access materials.
         </p>
       </div>
       <div class="content-header-actions">
-        <button class="btn-filter" aria-label="Filter resources">
+        <button class="btn-filter" aria-label="Filter resources" type="button">
           <span class="material-symbols-outlined" aria-hidden="true">filter_list</span>
           Filters
         </button>
-        <!-- id="sort-btn" is wired in JS to toggle sort order -->
-        <button class="btn-filter" id="sort-btn" aria-label="Sort resources">
+        <button class="btn-filter" id="sort-btn" aria-label="Sort resources" type="button">
           <span class="material-symbols-outlined" aria-hidden="true">sort</span>
           Latest First
         </button>
       </div>
     </div>
 
-    <!-- ── RESOURCE CARDS GRID ──────────────────────────────
-         Cards are injected here by renderSemester() in main.js.
-         The grid ID must match what JS targets: "cards-grid".
-    ─────────────────────────────────────────────────────── -->
+    <!-- 
+      Cards are injected here by renderSemester() in main.js.
+      Grid ID must match what JS targets: "cards-grid".
+    -->
     <div class="cards-grid" id="cards-grid" aria-label="Study resource cards">
       <!-- Cards rendered dynamically by main.js based on selected semester -->
     </div>
 
-  </main><!-- /#main-content -->
+  </main>
 
 
   <!-- ── FOOTER ───────────────────────────────────────────── -->
@@ -403,7 +401,7 @@
     </nav>
   </footer>
 
-</div><!-- /.main-wrapper -->
+</div>
 
 <script src="js/main.js"></script>
 </body>
